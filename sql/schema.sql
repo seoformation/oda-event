@@ -100,25 +100,19 @@ CREATE TABLE IF NOT EXISTS messages_lectures (
   FOREIGN KEY (membre_id) REFERENCES membres_inscription(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Si la table membres_inscription existe déjà en production (déploiement
--- initial déjà fait), exécuter plutôt ces ALTER TABLE via phpMyAdmin, puis
--- les CREATE TABLE ci-dessus pour les 4 nouvelles tables (admins,
--- evenements, messages_membres, messages_lectures — inchangés, à rejouer
--- tels quels). Les colonnes event_swiss_opt_in/account_type/profile_type/
--- prenom/nom/es_legal_name/es_ide_number/es_entity_type/
--- es_legal_representative/lang/es_address/es_company_*/payment_token/
--- paiement_* ont déjà été ajoutées lors de précédents déploiements — ne
--- pas les rejouer.
+-- Toutes les colonnes du CREATE TABLE ci-dessus (y compris lang, es_address,
+-- es_company_*, payment_token, paiement_*, password_hash, statut_admission,
+-- event_swiss_account_linked, login_tentatives, login_verrouille_jusqu_a) et
+-- la contrainte UNIQUE sur email ont été appliquées en production le
+-- 2026-08-27, ainsi que les 4 tables admins/evenements/messages_membres/
+-- messages_lectures. Le CREATE TABLE ci-dessus reflète donc fidèlement
+-- l'état réel de la base — plus besoin d'ALTER TABLE pour ces colonnes.
 --
--- ALTER TABLE membres_inscription
---   ADD COLUMN password_hash VARCHAR(255) NULL,
---   ADD COLUMN statut_admission ENUM('en_attente','accepte','refuse') NOT NULL DEFAULT 'en_attente',
---   ADD COLUMN event_swiss_account_linked TINYINT(1) NOT NULL DEFAULT 0,
---   ADD COLUMN login_tentatives INT NOT NULL DEFAULT 0,
---   ADD COLUMN login_verrouille_jusqu_a DATETIME NULL;
---
--- IMPORTANT — email devient un identifiant de connexion (email UNIQUE) :
--- si des lignes de test partagent déjà le même e-mail (ex. plusieurs essais
--- avec la même adresse), l'ALTER TABLE ci-dessous échouera tant qu'elles
--- n'ont pas été nettoyées (supprimées ou emails distingués) via phpMyAdmin.
--- ALTER TABLE membres_inscription ADD CONSTRAINT uq_email UNIQUE (email);
+-- ATTENTION : un ancien commentaire ici affirmait à tort que ces colonnes
+-- avaient déjà été ajoutées lors d'un déploiement antérieur, alors qu'elles
+-- ne l'avaient jamais été — ce qui a cassé silencieusement inscription.php,
+-- admin.php et paiement.php en production (erreurs 500 sans trace, PDO
+-- "Column not found") jusqu'à ce que ce soit diagnostiqué et corrigé. En cas
+-- de doute sur l'état réel d'une colonne en production, vérifier directement
+-- via `SHOW COLUMNS FROM membres_inscription;` plutôt que de se fier à un
+-- commentaire.

@@ -19,7 +19,8 @@ require_once __DIR__ . '/db.php';
 header('Content-Type: application/json; charset=utf-8');
 
 $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? ($_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '');
-if (!defined('EVENT_SWISS_API_SECRET') || EVENT_SWISS_API_SECRET === '' || $authHeader !== 'Bearer ' . EVENT_SWISS_API_SECRET) {
+$expectedAuthHeader = defined('EVENT_SWISS_API_SECRET') ? 'Bearer ' . EVENT_SWISS_API_SECRET : null;
+if (!$expectedAuthHeader || EVENT_SWISS_API_SECRET === '' || !hash_equals($expectedAuthHeader, $authHeader)) {
     http_response_code(401);
     echo json_encode(['error' => 'Non autorisé']);
     exit;

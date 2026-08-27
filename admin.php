@@ -13,7 +13,7 @@ require_once __DIR__ . '/db.php';
 
 $admin = require_admin_login();
 $pdo = get_pdo();
-$tab = in_array($_GET['tab'] ?? '', ['evenements', 'messages', 'demandes'], true) ? $_GET['tab'] : 'demandes';
+$tab = in_array($_GET['tab'] ?? '', ['evenements', 'messages', 'demandes', 'equipe'], true) ? $_GET['tab'] : 'demandes';
 $notice = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
@@ -52,6 +52,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
         $stmt = $pdo->prepare('UPDATE evenements SET publie = 1 - publie WHERE id = :id');
         $stmt->execute([':id' => $id]);
         $tab = 'evenements';
+    } elseif ($action === 'creer_admin') {
+        $email = trim((string) ($_POST['email'] ?? ''));
+        $nom = trim((string) ($_POST['nom'] ?? ''));
+        $password = (string) ($_POST['password'] ?? '');
+        $passwordConfirm = (string) ($_POST['password_confirm'] ?? '');
+        if ($email === '' || $nom === '') {
+            $notice = "E-mail et nom sont obligatoires.";
+        } elseif (mb_strlen($password) < 8) {
+            $notice = "Le mot de passe doit contenir au moins 8 caractères.";
+        } elseif ($password !== $passwordConfirm) {
+            $notice = "Les mots de passe ne correspondent pas.";
+        } else {
+            try {
+                $stmt = $pdo->prepare('INSERT INTO admins (email, password_hash, nom) VALUES (:email, :password_hash, :nom)');
+                $stmt->execute([
+                    ':email' => $email,
+                    ':password_hash' => password_hash($password, PASSWORD_DEFAULT),
+                    ':nom' => $nom,
+                ]);
+                $notice = "Compte admin créé pour " . $nom . ".";
+            } catch (PDOException $ex) {
+                $notice = $ex->getCode() === '23000'
+                    ? "Un compte admin existe déjà avec cet e-mail."
+                    : "Erreur lors de la création du compte.";
+            }
+        }
+        $tab = 'equipe';
     } elseif ($action === 'envoyer_message') {
         $destinataire = trim((string) ($_POST['destinataire'] ?? '')); // 'tous' ou id membre
         $titre = trim((string) ($_POST['titre'] ?? ''));
@@ -76,6 +103,7 @@ $messages = $pdo->query(
 )->fetchAll();
 $demandes = $pdo->query('SELECT id, prenom, nom, email, account_type, profile_type, statut_admission, paiement_statut, date_inscription FROM membres_inscription ORDER BY date_inscription DESC')->fetchAll();
 $membresPourMessage = $pdo->query('SELECT id, prenom, nom, email FROM membres_inscription ORDER BY nom, prenom')->fetchAll();
+$admins = $pdo->query('SELECT id, email, nom, created_at FROM admins ORDER BY created_at DESC')->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -104,6 +132,7 @@ $membresPourMessage = $pdo->query('SELECT id, prenom, nom, email FROM membres_in
           <a href="admin.php?tab=demandes" style="padding-bottom:0.5rem; <?= $tab === 'demandes' ? 'border-bottom:2px solid var(--gold);' : '' ?>">Demandes d'adhésion</a>
           <a href="admin.php?tab=evenements" style="padding-bottom:0.5rem; <?= $tab === 'evenements' ? 'border-bottom:2px solid var(--gold);' : '' ?>">Événements</a>
           <a href="admin.php?tab=messages" style="padding-bottom:0.5rem; <?= $tab === 'messages' ? 'border-bottom:2px solid var(--gold);' : '' ?>">Messages</a>
+          <a href="admin.php?tab=equipe" style="padding-bottom:0.5rem; <?= $tab === 'equipe' ? 'border-bottom:2px solid var(--gold);' : '' ?>">Équipe</a>
         </nav>
 
         <?php if ($tab === 'demandes'): ?>
@@ -153,7 +182,7 @@ $membresPourMessage = $pdo->query('SELECT id, prenom, nom, email FROM membres_in
             </div>
           <?php endforeach; ?>
 
-        <?php else: ?>
+        <?php elseif ($tab === 'messages'): ?>
           <h2 style="font-size:1rem;">Envoyer un message</h2>
           <form method="post" novalidate style="margin-bottom:2rem;">
             <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
@@ -179,6 +208,34 @@ $membresPourMessage = $pdo->query('SELECT id, prenom, nom, email FROM membres_in
               <span style="font-size:0.8rem; color:#999;"> · <?= e(date('d.m.Y', strtotime((string) $msg['created_at']))) ?></span>
             </div>
           <?php endforeach; ?>
+
+        <?php else: ?>
+          <h2 style="font-size:1rem;">Ajouter un admin</h2>
+          <form method="post" novalidate style="margin-bottom:2rem; max-width:420px;">
+            <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+            <input type="hidden" name="action" value="creer_admin">
+            <div class="field"><label for="admin_email">E-mail</label><input type="email" id="admin_email" name="email" required autocomplete="off"></div>
+            <div class="field"><label for="admin_nom">Nom</label><input type="text" id="admin_nom" name="nom" required></div>
+            <div class="field"><label for="admin_password">Mot de passe</label><input type="password" id="admin_password" name="password" required minlength="8" autocomplete="new-password"></div>
+            <div class="field"><label for="admin_password_confirm">Confirmer le mot de passe</label><input type="password" id="admin_password_confirm" name="password_confirm" required minlength="8" autocomplete="new-password"></div>
+            <button type="submit" class="btn btn-primary">Créer le compte</button>
+          </form>
+
+          <h2 style="font-size:1rem;">Membres de l'équipe</h2>
+          <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+            <thead><tr style="text-align:left; border-bottom:1px solid #e2e2e2;">
+              <th style="padding:0.5rem;">Nom</th><th>E-mail</th><th>Depuis</th>
+            </tr></thead>
+            <tbody>
+              <?php foreach ($admins as $a): ?>
+                <tr style="border-bottom:1px solid #f0f0f0;">
+                  <td style="padding:0.5rem;"><?= e((string) $a['nom']) ?><?= ((int) $a['id']) === (int) $admin['id'] ? ' (vous)' : '' ?></td>
+                  <td><?= e((string) $a['email']) ?></td>
+                  <td><?= e(date('d.m.Y', strtotime((string) $a['created_at']))) ?></td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
         <?php endif; ?>
 
       </div>

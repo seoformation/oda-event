@@ -34,7 +34,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([':email' => $email]);
             $admin = $stmt->fetch();
 
-            if ($admin && password_verify($password, $admin['password_hash'])) {
+            // password_verify() est systematiquement appele (sur un hash
+            // factice si le compte n'existe pas) pour que le temps de
+            // reponse ne revele pas quels e-mails ont un compte admin.
+            $hashToCheck = $admin ? $admin['password_hash'] : '$2y$10$invalidsaltinvalidsaltinvalidsaltinva';
+            $passwordOk = password_verify($password, $hashToCheck);
+
+            if ($admin && $passwordOk) {
                 reset_login_failures($pdo, 'admins', (int) $admin['id']);
                 session_regenerate_id(true);
                 $_SESSION['admin_id'] = (int) $admin['id'];

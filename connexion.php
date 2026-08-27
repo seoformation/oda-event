@@ -34,7 +34,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([':email' => $email]);
             $membre = $stmt->fetch();
 
-            if ($membre && $membre['password_hash'] && password_verify($password, $membre['password_hash'])) {
+            // password_verify() est systematiquement appele (sur un hash
+            // factice si le compte n'existe pas) pour que le temps de
+            // reponse ne revele pas quels e-mails ont un compte.
+            $hashToCheck = ($membre && $membre['password_hash']) ? $membre['password_hash'] : '$2y$10$invalidsaltinvalidsaltinvalidsaltinva';
+            $passwordOk = password_verify($password, $hashToCheck);
+
+            if ($membre && $membre['password_hash'] && $passwordOk) {
                 reset_login_failures($pdo, 'membres_inscription', (int) $membre['id']);
                 session_regenerate_id(true);
                 $_SESSION['membre_id'] = (int) $membre['id'];

@@ -86,6 +86,17 @@ function e(string $value): string
 }
 
 /**
+ * Retire les caractères de contrôle (CR/LF notamment) d'une saisie
+ * utilisateur avant usage dans un en-tête d'e-mail (Subject). PHPMailer
+ * protège déjà contre l'injection d'en-têtes via ses propriétés, mais on ne
+ * dépend pas uniquement de ce comportement interne.
+ */
+function strip_control_chars(string $value): string
+{
+    return trim((string) preg_replace('/[\x00-\x1F\x7F]/', '', $value));
+}
+
+/**
  * ---------- Authentification (comptes membres et admins) ----------
  * Sessions PHP natives. Deux realites separees et jamais melangees :
  * $_SESSION['membre_id'] (mon-compte.php) et $_SESSION['admin_id']

@@ -36,8 +36,8 @@ $accountTypesValides = ['private', 'company'];
 
 $accountType = trim((string) ($_POST['account_type'] ?? ''));
 $profileType = trim((string) ($_POST['profile_type'] ?? ''));
-$prenom = trim((string) ($_POST['prenom'] ?? ''));
-$nom = trim((string) ($_POST['nom'] ?? ''));
+$prenom = strip_control_chars((string) ($_POST['prenom'] ?? ''));
+$nom = strip_control_chars((string) ($_POST['nom'] ?? ''));
 $email = trim((string) ($_POST['email'] ?? ''));
 $telephone = trim((string) ($_POST['telephone'] ?? ''));
 $adresse = trim((string) ($_POST['adresse'] ?? ''));

@@ -82,6 +82,101 @@
     updateEmailDisplay();
   }
 
+  /* ---------- Pré-remplissage via Google Sign-In (nom/prénom/e-mail) ---------- */
+  (function initGoogleSignIn() {
+    var containers = document.querySelectorAll("[data-google-signin-btn]");
+    if (!containers.length) return;
+
+    var clientIdMeta = document.querySelector('meta[name="google-signin-client-id"]');
+    var clientId = clientIdMeta ? clientIdMeta.content.trim() : "";
+    if (!clientId) {
+      // Pas encore configuré : on masque le bloc plutôt que d'afficher un
+      // bouton cassé.
+      containers.forEach(function (el) {
+        var block = el.closest(".google-signin-block");
+        if (block) block.style.display = "none";
+      });
+      return;
+    }
+
+    function decodeJwtPayload(token) {
+      try {
+        var base64Url = token.split(".")[1];
+        var base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+        var json = decodeURIComponent(
+          atob(base64)
+            .split("")
+            .map(function (c) {
+              return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+            })
+            .join("")
+        );
+        return JSON.parse(json);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function handleCredentialResponse(response) {
+      var payload = response && response.credential ? decodeJwtPayload(response.credential) : null;
+      if (!payload) return;
+
+      var form = document.querySelector("[data-ajax-form]");
+      if (!form) return;
+
+      var emailField = form.querySelector("[data-contact-email]");
+      var formPrenomField = form.querySelector("#prenom");
+      var formNomField = form.querySelector("#nom");
+
+      if (emailField && payload.email && !emailField.value.trim()) {
+        emailField.value = payload.email;
+        emailField.dispatchEvent(new Event("input"));
+      }
+      if (formPrenomField && payload.given_name && !formPrenomField.value.trim()) {
+        formPrenomField.value = payload.given_name;
+      }
+      if (formNomField && payload.family_name && !formNomField.value.trim()) {
+        formNomField.value = payload.family_name;
+      }
+    }
+
+    function renderButtons() {
+      if (!window.google || !google.accounts || !google.accounts.id) return;
+      google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleCredentialResponse,
+      });
+      containers.forEach(function (el) {
+        google.accounts.id.renderButton(el, {
+          type: "standard",
+          theme: "outline",
+          size: "large",
+          shape: "pill",
+          text: "continue_with",
+          width: 320,
+          locale: el.getAttribute("data-google-locale") || "fr",
+        });
+      });
+    }
+
+    if (window.google && google.accounts && google.accounts.id) {
+      renderButtons();
+    } else {
+      // Le script accounts.google.com/gsi/client charge en async/defer :
+      // on retente jusqu'à ce qu'il soit prêt (quelques centaines de ms max).
+      var attempts = 0;
+      var interval = setInterval(function () {
+        attempts += 1;
+        if (window.google && google.accounts && google.accounts.id) {
+          clearInterval(interval);
+          renderButtons();
+        } else if (attempts > 40) {
+          clearInterval(interval);
+        }
+      }, 100);
+    }
+  })();
+
   /* ---------- Validation & soumission AJAX ---------- */
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -92,7 +187,7 @@
     if (!wrapper) return;
     wrapper.classList.add("has-error");
     var errorEl = wrapper.querySelector(".field-error");
-    if (errorEl) errorEl.textContent = message;
+    if (errorEl) errorEl.innerHTML = message;
   }
 
   function clearFieldErrors(form) {
