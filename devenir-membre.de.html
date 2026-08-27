@@ -179,6 +179,106 @@
               <span class="field-error"></span>
             </div>
 
+            <div class="field">
+              <label class="checkbox-field" for="event_swiss_opt_in">
+                <input type="checkbox" id="event_swiss_opt_in" name="event_swiss_opt_in" value="1" data-event-swiss-toggle>
+                <span>Ich möchte zusätzlich kostenlos die <strong>Silver</strong>-Formel auf <a href="https://event-swiss.com" target="_blank" rel="noopener">event-swiss.com</a> nutzen, der Verzeichnis-Plattform der Schweizer Eventbranche.</span>
+              </label>
+            </div>
+
+            <div class="event-swiss-fields" data-event-swiss-fields>
+
+              <fieldset class="field" style="border:none; padding:0; margin:0;">
+                <legend style="font-weight:700; font-size:0.92rem; margin-bottom:0.75rem;">Ich melde mich auf event-swiss.com an als...</legend>
+                <div class="radio-group" role="radiogroup" data-account-type-group>
+                  <label class="radio-option">
+                    <input type="radio" name="account_type" value="private" data-account-type>
+                    <span>
+                      <strong>Privat</strong>
+                      <span class="desc">Einzelnes Talent</span>
+                    </span>
+                  </label>
+                  <label class="radio-option">
+                    <input type="radio" name="account_type" value="company" data-account-type>
+                    <span>
+                      <strong>Unternehmen</strong>
+                      <span class="desc">Dienstleister oder Veranstalter</span>
+                    </span>
+                  </label>
+                </div>
+                <span class="field-error"></span>
+              </fieldset>
+
+              <div class="form-row-2 form-grid" style="display:grid;">
+                <div class="field">
+                  <label for="prenom">Vorname <span aria-hidden="true">*</span></label>
+                  <input type="text" id="prenom" name="prenom" autocomplete="given-name">
+                  <span class="field-error"></span>
+                </div>
+                <div class="field">
+                  <label for="nom">Nachname <span aria-hidden="true">*</span></label>
+                  <input type="text" id="nom" name="nom" autocomplete="family-name">
+                  <span class="field-error"></span>
+                </div>
+              </div>
+
+              <div class="event-swiss-company-fields" data-event-swiss-company-fields>
+
+                <fieldset class="field" style="border:none; padding:0; margin:0;">
+                  <legend style="font-weight:700; font-size:0.92rem; margin-bottom:0.75rem;">Profil auf event-swiss.com</legend>
+                  <div class="radio-group" role="radiogroup" data-profile-type-group>
+                    <label class="radio-option">
+                      <input type="radio" name="profile_type_choice" value="provider" data-profile-type-choice>
+                      <span><strong>Dienstleister</strong></span>
+                    </label>
+                    <label class="radio-option">
+                      <input type="radio" name="profile_type_choice" value="event" data-profile-type-choice>
+                      <span><strong>Veranstalter</strong></span>
+                    </label>
+                  </div>
+                  <span class="field-error"></span>
+                </fieldset>
+
+                <div class="form-row-2 form-grid" style="display:grid;">
+                  <div class="field">
+                    <label for="legal_name">Firmenname <span aria-hidden="true">*</span></label>
+                    <input type="text" id="legal_name" name="legal_name" autocomplete="organization">
+                    <span class="field-error"></span>
+                  </div>
+                  <div class="field">
+                    <label for="ide_number">UID-Nummer</label>
+                    <input type="text" id="ide_number" name="ide_number" placeholder="CHE-123.456.789">
+                    <span class="field-error"></span>
+                  </div>
+                </div>
+
+                <div class="form-row-2 form-grid" style="display:grid;">
+                  <div class="field">
+                    <label for="entity_type">Rechtsform <span aria-hidden="true">*</span></label>
+                    <select id="entity_type" name="entity_type">
+                      <option value="" selected disabled>Rechtsform auswählen</option>
+                      <option value="individuel">Einzelunternehmen</option>
+                      <option value="sarl">GmbH</option>
+                      <option value="sa">AG</option>
+                      <option value="association">Verein</option>
+                      <option value="fondation">Stiftung</option>
+                      <option value="autre">Andere</option>
+                    </select>
+                    <span class="field-error"></span>
+                  </div>
+                  <div class="field">
+                    <label for="legal_representative">Gesetzlicher Vertreter</label>
+                    <input type="text" id="legal_representative" name="legal_representative">
+                    <span class="field-error"></span>
+                  </div>
+                </div>
+
+              </div>
+
+              <input type="hidden" name="profile_type" value="" data-profile-type-output>
+
+            </div>
+
             <!-- Honeypot-Feld gegen Spam: bleibt bei Menschen leer, visuell versteckt -->
             <div class="honeypot-field" aria-hidden="true">
               <label for="site_web">Dieses Feld nicht ausfüllen</label>

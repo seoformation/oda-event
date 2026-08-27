@@ -27,3 +27,9 @@ define('MAIL_NOTIFICATION_TO', 'contact@oda-event.ch'); // reçoit les notificat
 
 // ---------- Site ----------
 define('SITE_URL', 'https://oda-event.ch');
+
+// ---------- API event-swiss.com (option Silver gratuite, devenir-membre) ----------
+// EVENT_SWISS_API_SECRET doit avoir exactement la même valeur que
+// ODA_API_SECRET dans le .env.local / Vercel du projet event-swiss.com.
+define('EVENT_SWISS_API_URL', 'https://event-swiss.com');
+define('EVENT_SWISS_API_SECRET', '');

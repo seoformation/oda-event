@@ -42,6 +42,16 @@ $canton = trim((string) ($_POST['canton'] ?? ''));
 $message = trim((string) ($_POST['message'] ?? ''));
 $consentement = (string) ($_POST['consentement_rgpd'] ?? '') === '1';
 
+$eventSwissOptIn = (string) ($_POST['event_swiss_opt_in'] ?? '') === '1';
+$accountType = trim((string) ($_POST['account_type'] ?? ''));
+$profileType = trim((string) ($_POST['profile_type'] ?? ''));
+$prenom = trim((string) ($_POST['prenom'] ?? ''));
+$nom = trim((string) ($_POST['nom'] ?? ''));
+$legalName = trim((string) ($_POST['legal_name'] ?? ''));
+$ideNumber = trim((string) ($_POST['ide_number'] ?? ''));
+$entityType = trim((string) ($_POST['entity_type'] ?? ''));
+$legalRepresentative = trim((string) ($_POST['legal_representative'] ?? ''));
+
 $errors = [];
 
 if (!in_array($typeMembre, $typesMembreValides, true)) {
@@ -66,6 +76,34 @@ if (!$consentement) {
     $errors['consentement_rgpd'] = t($lang, 'err_consentement');
 }
 
+if ($eventSwissOptIn) {
+    $accountTypesValides = ['private', 'company'];
+    $entityTypesValides = ['association', 'sarl', 'sa', 'fondation', 'individuel', 'autre'];
+
+    if (!in_array($accountType, $accountTypesValides, true)) {
+        $errors['account_type'] = t($lang, 'err_es_account_type');
+    }
+    $profileTypeCoherent = ($accountType === 'private' && $profileType === 'talent')
+        || ($accountType === 'company' && in_array($profileType, ['provider', 'event'], true));
+    if (!$profileTypeCoherent) {
+        $errors['profile_type_choice'] = t($lang, 'err_es_profile_type');
+    }
+    if ($prenom === '' || mb_strlen($prenom) > 100) {
+        $errors['prenom'] = t($lang, 'err_es_prenom');
+    }
+    if ($nom === '' || mb_strlen($nom) > 100) {
+        $errors['nom'] = t($lang, 'err_es_nom');
+    }
+    if ($accountType === 'company') {
+        if ($legalName === '' || mb_strlen($legalName) > 150) {
+            $errors['legal_name'] = t($lang, 'err_es_legal_name');
+        }
+        if (!in_array($entityType, $entityTypesValides, true)) {
+            $errors['entity_type'] = t($lang, 'err_es_entity_type');
+        }
+    }
+}
+
 if (!empty($errors)) {
     json_response(false, t($lang, 'errors_generic'), $errors);
 }
@@ -74,9 +112,13 @@ try {
     $pdo = get_pdo();
     $stmt = $pdo->prepare(
         'INSERT INTO membres_inscription
-            (type_membre, nom_complet, entreprise, email, telephone, canton, message, consentement_rgpd)
+            (type_membre, nom_complet, entreprise, email, telephone, canton, message, consentement_rgpd,
+             event_swiss_opt_in, account_type, profile_type, prenom, nom,
+             es_legal_name, es_ide_number, es_entity_type, es_legal_representative)
          VALUES
-            (:type_membre, :nom_complet, :entreprise, :email, :telephone, :canton, :message, :consentement_rgpd)'
+            (:type_membre, :nom_complet, :entreprise, :email, :telephone, :canton, :message, :consentement_rgpd,
+             :event_swiss_opt_in, :account_type, :profile_type, :prenom, :nom,
+             :es_legal_name, :es_ide_number, :es_entity_type, :es_legal_representative)'
     );
     $stmt->execute([
         ':type_membre' => $typeMembre,
@@ -87,10 +129,58 @@ try {
         ':canton' => $canton,
         ':message' => $message !== '' ? $message : null,
         ':consentement_rgpd' => 1,
+        ':event_swiss_opt_in' => $eventSwissOptIn ? 1 : 0,
+        ':account_type' => $eventSwissOptIn ? $accountType : null,
+        ':profile_type' => $eventSwissOptIn ? $profileType : null,
+        ':prenom' => $eventSwissOptIn ? $prenom : null,
+        ':nom' => $eventSwissOptIn ? $nom : null,
+        ':es_legal_name' => $eventSwissOptIn && $accountType === 'company' ? $legalName : null,
+        ':es_ide_number' => $eventSwissOptIn && $accountType === 'company' && $ideNumber !== '' ? $ideNumber : null,
+        ':es_entity_type' => $eventSwissOptIn && $accountType === 'company' ? $entityType : null,
+        ':es_legal_representative' => $eventSwissOptIn && $accountType === 'company' && $legalRepresentative !== '' ? $legalRepresentative : null,
     ]);
 } catch (PDOException $ex) {
     error_log('Erreur MySQL inscription.php : ' . $ex->getMessage());
     json_response(false, t($lang, 'db_error'));
+}
+
+// Transmission best-effort a event-swiss.com : un echec ici ne doit jamais
+// faire echouer la demande d'adhesion OrTra elle-meme (deja enregistree
+// ci-dessus), juste etre journalise pour suivi manuel.
+if ($eventSwissOptIn && defined('EVENT_SWISS_API_URL') && defined('EVENT_SWISS_API_SECRET') && EVENT_SWISS_API_SECRET !== '') {
+    $esPayload = [
+        'account_type' => $accountType,
+        'profile_type' => $profileType,
+        'email' => $email,
+        'first_name' => $prenom,
+        'last_name' => $nom,
+        'phone' => $telephone !== '' ? $telephone : null,
+        'legal_name' => $accountType === 'company' ? $legalName : null,
+        'ide_number' => $accountType === 'company' && $ideNumber !== '' ? $ideNumber : null,
+        'entity_type' => $accountType === 'company' ? $entityType : null,
+        'legal_representative' => $accountType === 'company' && $legalRepresentative !== '' ? $legalRepresentative : null,
+        'lang' => $lang,
+    ];
+
+    $ch = curl_init(rtrim(EVENT_SWISS_API_URL, '/') . '/api/oda/membership');
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => json_encode($esPayload),
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . EVENT_SWISS_API_SECRET,
+        ],
+        CURLOPT_TIMEOUT => 8,
+    ]);
+    $esResponse = curl_exec($ch);
+    $esHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $esCurlError = curl_error($ch);
+    curl_close($ch);
+
+    if ($esCurlError !== '' || $esHttpCode < 200 || $esHttpCode >= 300) {
+        error_log('Erreur appel event-swiss.com /api/oda/membership : ' . ($esCurlError !== '' ? $esCurlError : (string) $esResponse));
+    }
 }
 
 $labelsType = [
@@ -110,8 +200,10 @@ $notifHtml = '<h2>' . e(t('fr', 'notif_new_request')) . '</h2>'
     . '<p><strong>E-mail :</strong> ' . e($email) . '</p>'
     . ($telephone !== '' ? '<p><strong>Téléphone :</strong> ' . e($telephone) . '</p>' : '')
     . '<p><strong>Canton :</strong> ' . e($canton) . '</p>'
-    . ($message !== '' ? '<p><strong>Message :</strong><br>' . nl2br(e($message)) . '</p>' : '');
-$notifAlt = "Langue: $lang\nType: $labelType\nNom: $nomComplet\nEntreprise: $entreprise\nEmail: $email\nTéléphone: $telephone\nCanton: $canton\nMessage: $message";
+    . ($message !== '' ? '<p><strong>Message :</strong><br>' . nl2br(e($message)) . '</p>' : '')
+    . ($eventSwissOptIn ? '<p><strong>Formule Silver event-swiss.com demandée :</strong> ' . e($accountType === 'company' ? 'Entreprise' : 'Privé') . ' — ' . e($profileType) . ' (' . e($prenom . ' ' . $nom) . ')</p>' : '');
+$notifAlt = "Langue: $lang\nType: $labelType\nNom: $nomComplet\nEntreprise: $entreprise\nEmail: $email\nTéléphone: $telephone\nCanton: $canton\nMessage: $message"
+    . ($eventSwissOptIn ? "\nformule Silver event-swiss.com demandée: " . ($accountType === 'company' ? 'Entreprise' : 'Privé') . " - $profileType ($prenom $nom)" : '');
 
 send_mail(MAIL_NOTIFICATION_TO, "OrTra Suisse de l'Événementiel", $notifSubject, $notifHtml, $notifAlt, $email);
 

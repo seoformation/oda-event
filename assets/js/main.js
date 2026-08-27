@@ -36,6 +36,71 @@
     updateEntrepriseVisibility();
   }
 
+  /* ---------- Toggle des champs "event-swiss.com" (option Silver gratuite) ---------- */
+  var eventSwissToggle = document.querySelector("[data-event-swiss-toggle]");
+  var eventSwissFields = document.querySelector("[data-event-swiss-fields]");
+  var accountTypeRadios = document.querySelectorAll("[data-account-type]");
+  var companyFields = document.querySelector("[data-event-swiss-company-fields]");
+  var profileTypeChoiceRadios = document.querySelectorAll("[data-profile-type-choice]");
+  var profileTypeOutput = document.querySelector("[data-profile-type-output]");
+  var prenomField = document.getElementById("prenom");
+  var nomField = document.getElementById("nom");
+  var legalNameField = document.getElementById("legal_name");
+  var entityTypeField = document.getElementById("entity_type");
+
+  if (eventSwissToggle && eventSwissFields) {
+    var updateProfileTypeOutput = function () {
+      if (!eventSwissToggle.checked) {
+        profileTypeOutput.value = "";
+        return;
+      }
+      var checkedAccountType = document.querySelector("[data-account-type]:checked");
+      if (!checkedAccountType) {
+        profileTypeOutput.value = "";
+      } else if (checkedAccountType.value === "private") {
+        profileTypeOutput.value = "talent";
+      } else {
+        var checkedProfile = document.querySelector("[data-profile-type-choice]:checked");
+        profileTypeOutput.value = checkedProfile ? checkedProfile.value : "";
+      }
+    };
+
+    var updateAccountTypeVisibility = function () {
+      var optedIn = eventSwissToggle.checked;
+      var checkedAccountType = document.querySelector("[data-account-type]:checked");
+      var isCompany = optedIn && checkedAccountType && checkedAccountType.value === "company";
+      if (companyFields) companyFields.style.display = isCompany ? "" : "none";
+      profileTypeChoiceRadios.forEach(function (radio) {
+        if (isCompany) radio.setAttribute("required", "required");
+        else radio.removeAttribute("required");
+      });
+      if (legalNameField) legalNameField.required = isCompany;
+      if (entityTypeField) entityTypeField.required = isCompany;
+      updateProfileTypeOutput();
+    };
+
+    var updateEventSwissVisibility = function () {
+      var optedIn = eventSwissToggle.checked;
+      eventSwissFields.style.display = optedIn ? "" : "none";
+      accountTypeRadios.forEach(function (radio) {
+        if (optedIn) radio.setAttribute("required", "required");
+        else radio.removeAttribute("required");
+      });
+      if (prenomField) prenomField.required = optedIn;
+      if (nomField) nomField.required = optedIn;
+      updateAccountTypeVisibility();
+    };
+
+    eventSwissToggle.addEventListener("change", updateEventSwissVisibility);
+    accountTypeRadios.forEach(function (radio) {
+      radio.addEventListener("change", updateAccountTypeVisibility);
+    });
+    profileTypeChoiceRadios.forEach(function (radio) {
+      radio.addEventListener("change", updateProfileTypeOutput);
+    });
+    updateEventSwissVisibility();
+  }
+
   /* ---------- Validation & soumission AJAX ---------- */
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -87,6 +152,21 @@
       if (!checked) {
         showAlert(form, "error", "Veuillez sélectionner un type de membre.");
         valid = false;
+      }
+    }
+
+    var eventSwissToggleField = form.querySelector("[data-event-swiss-toggle]");
+    if (eventSwissToggleField && eventSwissToggleField.checked) {
+      var checkedAccountType = form.querySelector('input[name="account_type"]:checked');
+      if (!checkedAccountType) {
+        setFieldError(form, "account_type", "Merci de sélectionner une option.");
+        valid = false;
+      } else if (checkedAccountType.value === "company") {
+        var checkedProfileType = form.querySelector('input[name="profile_type_choice"]:checked');
+        if (!checkedProfileType) {
+          setFieldError(form, "profile_type_choice", "Merci de sélectionner une option.");
+          valid = false;
+        }
       }
     }
 
