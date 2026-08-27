@@ -1,0 +1,14 @@
+# Sécurité de base — OrTra Suisse de l'Événementiel
+
+# Force HTTPS
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Bloque l'accès direct aux fichiers PHP sensibles (identifiants, fonctions internes)
+<FilesMatch "^(config|functions|db|i18n)\.php$">
+  Require all denied
+</FilesMatch>
+
+# Empêche l'affichage du contenu des dossiers
+Options -Indexes

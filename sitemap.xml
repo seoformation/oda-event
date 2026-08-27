@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://oda-event.ch/index.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://oda-event.ch/index.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://oda-event.ch/index.de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://oda-event.ch/index.it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://oda-event.ch/index.html"/>
+  </url>
+  <url>
+    <loc>https://oda-event.ch/index.de.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://oda-event.ch/index.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://oda-event.ch/index.de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://oda-event.ch/index.it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://oda-event.ch/index.html"/>
+  </url>
+  <url>
+    <loc>https://oda-event.ch/index.it.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://oda-event.ch/index.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://oda-event.ch/index.de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://oda-event.ch/index.it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://oda-event.ch/index.html"/>
+  </url>
+
+  <url>
+    <loc>https://oda-event.ch/devenir-membre.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://oda-event.ch/devenir-membre.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://oda-event.ch/devenir-membre.de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://oda-event.ch/devenir-membre.it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://oda-event.ch/devenir-membre.html"/>
+  </url>
+  <url>
+    <loc>https://oda-event.ch/devenir-membre.de.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://oda-event.ch/devenir-membre.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://oda-event.ch/devenir-membre.de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://oda-event.ch/devenir-membre.it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://oda-event.ch/devenir-membre.html"/>
+  </url>
+  <url>
+    <loc>https://oda-event.ch/devenir-membre.it.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://oda-event.ch/devenir-membre.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://oda-event.ch/devenir-membre.de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://oda-event.ch/devenir-membre.it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://oda-event.ch/devenir-membre.html"/>
+  </url>
+
+  <url>
+    <loc>https://oda-event.ch/contact.html</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://oda-event.ch/contact.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://oda-event.ch/contact.de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://oda-event.ch/contact.it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://oda-event.ch/contact.html"/>
+  </url>
+  <url>
+    <loc>https://oda-event.ch/contact.de.html</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://oda-event.ch/contact.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://oda-event.ch/contact.de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://oda-event.ch/contact.it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://oda-event.ch/contact.html"/>
+  </url>
+  <url>
+    <loc>https://oda-event.ch/contact.it.html</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://oda-event.ch/contact.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://oda-event.ch/contact.de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://oda-event.ch/contact.it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://oda-event.ch/contact.html"/>
+  </url>
+
+  <url>
+    <loc>https://oda-event.ch/mentions-legales.html</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://oda-event.ch/mentions-legales.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://oda-event.ch/mentions-legales.de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://oda-event.ch/mentions-legales.it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://oda-event.ch/mentions-legales.html"/>
+  </url>
+  <url>
+    <loc>https://oda-event.ch/mentions-legales.de.html</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://oda-event.ch/mentions-legales.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://oda-event.ch/mentions-legales.de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://oda-event.ch/mentions-legales.it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://oda-event.ch/mentions-legales.html"/>
+  </url>
+  <url>
+    <loc>https://oda-event.ch/mentions-legales.it.html</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://oda-event.ch/mentions-legales.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://oda-event.ch/mentions-legales.de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://oda-event.ch/mentions-legales.it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://oda-event.ch/mentions-legales.html"/>
+  </url>
+</urlset>

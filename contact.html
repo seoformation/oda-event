@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact — OrTra Suisse de l'Événementiel</title>
+<meta name="description" content="Contactez l'OrTra Suisse de l'Événementiel : adresse, téléphone et formulaire de contact.">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="alternate" hreflang="fr" href="https://oda-event.ch/contact.html">
+<link rel="alternate" hreflang="de" href="https://oda-event.ch/contact.de.html">
+<link rel="alternate" hreflang="it" href="https://oda-event.ch/contact.it.html">
+<link rel="alternate" hreflang="x-default" href="https://oda-event.ch/contact.html">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <img src="assets/img/OrTra_Logo_FR.svg" alt="OrTra Suisse de l'Événementiel" class="brand-logo">
+      <span class="visually-hidden">— Accueil</span>
+    </a>
+    <button class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="main-nav" aria-label="Ouvrir le menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <nav class="main-nav" id="main-nav" data-main-nav aria-label="Navigation principale">
+      <a href="index.html">Accueil</a>
+      <a href="devenir-membre.html">Devenir membre</a>
+      <a href="contact.html" class="is-active">Contact</a>
+      <div class="lang-switch" aria-label="Choix de la langue">
+        <a href="contact.html" class="is-active" lang="fr">FR</a>
+        <span class="sep" aria-hidden="true">·</span>
+        <a href="contact.de.html" lang="de">DE</a>
+        <span class="sep" aria-hidden="true">·</span>
+        <a href="contact.it.html" lang="it">IT</a>
+      </div>
+      <a href="devenir-membre.html" class="btn btn-primary">Rejoindre l'OrTra</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <section class="section section--dark">
+    <div class="container">
+      <div class="section-header section-header--center" style="max-width:640px;">
+        <p class="eyebrow" style="justify-content:center;">Contact</p>
+        <h1>Parlons de <span class="text-gold">votre secteur.</span></h1>
+        <p class="lede" style="margin-inline:auto;">Une question sur l'adhésion, la formation ou la feuille de route de l'OrTra ? Nous vous répondons rapidement.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--light">
+    <div class="container">
+
+      <div class="contact-info-grid">
+        <div class="contact-info-card card">
+          <h3>Adresse</h3>
+          <address>
+            OrTra Événementiel Suisse<br>
+            c/o Clément Rozier<br>
+            La Petite Camargue 66<br>
+            1897 Bouveret · Suisse
+          </address>
+        </div>
+        <div class="contact-info-card card">
+          <h3>Téléphone</h3>
+          <p><a href="tel:+41797463885">+41 79 746 38 85</a></p>
+        </div>
+        <div class="contact-info-card card">
+          <h3>Siège</h3>
+          <p>Port-Valais, Suisse</p>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <form action="contact.php" method="post" data-ajax-form novalidate>
+
+          <div class="form-alert" data-form-alert role="status"></div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="nom">Nom <span aria-hidden="true">*</span></label>
+              <input type="text" id="nom" name="nom" required autocomplete="name">
+              <span class="field-error"></span>
+            </div>
+
+            <div class="field">
+              <label for="email">E-mail <span aria-hidden="true">*</span></label>
+              <input type="email" id="email" name="email" required autocomplete="email">
+              <span class="field-error"></span>
+            </div>
+
+            <div class="field">
+              <label for="message">Message <span aria-hidden="true">*</span></label>
+              <textarea id="message" name="message" required></textarea>
+              <span class="field-error"></span>
+            </div>
+
+            <!-- Champ honeypot anti-spam : laissé vide par les humains, masqué visuellement -->
+            <div class="honeypot-field" aria-hidden="true">
+              <label for="site_web">Ne pas remplir ce champ</label>
+              <input type="text" id="site_web" name="site_web" tabindex="-1" autocomplete="off">
+            </div>
+            <input type="hidden" name="form_started_at" data-form-started-at value="">
+            <input type="hidden" name="lang" value="fr">
+
+            <div class="form-submit-row">
+              <button type="submit" class="btn btn-primary btn-block">Envoyer le message</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <div class="footer-brand">
+          <img src="assets/img/OrTra_Logo_Combine_3Langues.svg" alt="" class="footer-logo">
+          <span>OrTra Suisse de l'Événementiel</span>
+        </div>
+        <address>
+          OrTra Événementiel Suisse<br>
+          c/o Clément Rozier<br>
+          La Petite Camargue 66<br>
+          1897 Bouveret · Suisse<br><br>
+          Tél. <a href="tel:+41797463885">+41 79 746 38 85</a><br>
+          Siège : Port-Valais, Suisse
+        </address>
+      </div>
+      <div class="footer-col">
+        <h4>Navigation</h4>
+        <ul>
+          <li><a href="index.html">Accueil</a></li>
+          <li><a href="devenir-membre.html">Devenir membre</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="mentions-legales.html">Mentions légales &amp; protection des données</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Plateforme partenaire</h4>
+        <p>À terme, l'annuaire professionnel du secteur sera disponible sur <a href="https://event-swiss.com" rel="noopener">event-swiss.com</a>.</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>Cercle des membres fondateurs · 2026</span>
+      <div class="lang-switch" aria-label="Choix de la langue">
+        <a href="contact.html" class="is-active" lang="fr">FR</a>
+        <span class="sep" aria-hidden="true">·</span>
+        <a href="contact.de.html" lang="de">DE</a>
+        <span class="sep" aria-hidden="true">·</span>
+        <a href="contact.it.html" lang="it">IT</a>
+      </div>
+      <a href="mentions-legales.html">Mentions légales &amp; protection des données (nLPD)</a>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>

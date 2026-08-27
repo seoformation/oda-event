@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /config.php
+Disallow: /functions.php
+Disallow: /db.php
+Disallow: /assets/lib/
+Disallow: /sql/
+
+Sitemap: https://oda-event.ch/sitemap.xml
