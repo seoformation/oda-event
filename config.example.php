@@ -31,5 +31,14 @@ define('SITE_URL', 'https://oda-event.ch');
 // ---------- API event-swiss.com (option Silver gratuite, devenir-membre) ----------
 // EVENT_SWISS_API_SECRET doit avoir exactement la même valeur que
 // ODA_API_SECRET dans le .env.local / Vercel du projet event-swiss.com.
-define('EVENT_SWISS_API_URL', 'https://event-swiss.com');
+define('EVENT_SWISS_API_URL', 'https://www.event-swiss.com');
 define('EVENT_SWISS_API_SECRET', '');
+
+// ---------- Paiement Stripe (cotisation OrTra, paiement.php) ----------
+// À renseigner après création du compte Stripe (dashboard.stripe.com) :
+// - STRIPE_SECRET_KEY : clé secrète (sk_live_... ou sk_test_...)
+// - STRIPE_WEBHOOK_SECRET : secret de signature du webhook Stripe pointant
+//   vers https://oda-event.ch/paiement-webhook.php pour l'événement
+//   checkout.session.completed
+define('STRIPE_SECRET_KEY', '');
+define('STRIPE_WEBHOOK_SECRET', '');

@@ -1,7 +1,8 @@
 /* =========================================================
    OrTra Suisse de l'Événementiel — main.js
-   Nav mobile, toggle champ entreprise, soumission AJAX des
-   formulaires (inscription / contact), anti-spam basique.
+   Nav mobile, toggle des champs entreprise / compte event-swiss.com,
+   soumission AJAX des formulaires (inscription / contact), anti-spam
+   basique.
    ========================================================= */
 (function () {
   "use strict";
@@ -21,39 +22,22 @@
     field.value = Date.now().toString();
   });
 
-  /* ---------- Toggle champ "entreprise" selon type de membre ---------- */
-  var membreRadios = document.querySelectorAll('input[name="type_membre"]');
-  var entrepriseField = document.querySelector("[data-entreprise-field]");
-  if (membreRadios.length && entrepriseField) {
-    var updateEntrepriseVisibility = function () {
-      var checked = document.querySelector('input[name="type_membre"]:checked');
-      var show = checked && (checked.value === "organisateur" || checked.value === "prestataire");
-      entrepriseField.style.display = show ? "" : "none";
-    };
-    membreRadios.forEach(function (radio) {
-      radio.addEventListener("change", updateEntrepriseVisibility);
-    });
-    updateEntrepriseVisibility();
-  }
-
-  /* ---------- Toggle des champs "event-swiss.com" (option Silver gratuite) ---------- */
-  var eventSwissToggle = document.querySelector("[data-event-swiss-toggle]");
-  var eventSwissFields = document.querySelector("[data-event-swiss-fields]");
+  /* ---------- Formulaire d'adhésion : privé/entreprise + compte event-swiss.com ---------- */
   var accountTypeRadios = document.querySelectorAll("[data-account-type]");
-  var companyFields = document.querySelector("[data-event-swiss-company-fields]");
+  var companyFieldsBlocks = document.querySelectorAll("[data-event-swiss-company-fields]");
   var profileTypeChoiceRadios = document.querySelectorAll("[data-profile-type-choice]");
   var profileTypeOutput = document.querySelector("[data-profile-type-output]");
   var prenomField = document.getElementById("prenom");
   var nomField = document.getElementById("nom");
   var legalNameField = document.getElementById("legal_name");
-  var entityTypeField = document.getElementById("entity_type");
+  var entrepriseField = document.getElementById("entreprise");
+  var companyAddressField = document.getElementById("company_address");
 
-  if (eventSwissToggle && eventSwissFields) {
+  var contactEmailField = document.querySelector("[data-contact-email]");
+  var eventSwissEmailDisplay = document.querySelector("[data-event-swiss-email-display]");
+
+  if (accountTypeRadios.length) {
     var updateProfileTypeOutput = function () {
-      if (!eventSwissToggle.checked) {
-        profileTypeOutput.value = "";
-        return;
-      }
       var checkedAccountType = document.querySelector("[data-account-type]:checked");
       if (!checkedAccountType) {
         profileTypeOutput.value = "";
@@ -66,39 +50,36 @@
     };
 
     var updateAccountTypeVisibility = function () {
-      var optedIn = eventSwissToggle.checked;
       var checkedAccountType = document.querySelector("[data-account-type]:checked");
-      var isCompany = optedIn && checkedAccountType && checkedAccountType.value === "company";
-      if (companyFields) companyFields.style.display = isCompany ? "" : "none";
+      var isCompany = !!checkedAccountType && checkedAccountType.value === "company";
+      companyFieldsBlocks.forEach(function (block) {
+        block.style.display = isCompany ? "" : "none";
+      });
       profileTypeChoiceRadios.forEach(function (radio) {
         if (isCompany) radio.setAttribute("required", "required");
         else radio.removeAttribute("required");
       });
       if (legalNameField) legalNameField.required = isCompany;
-      if (entityTypeField) entityTypeField.required = isCompany;
+      if (entrepriseField) entrepriseField.required = isCompany;
+      if (companyAddressField) companyAddressField.required = isCompany;
       updateProfileTypeOutput();
     };
 
-    var updateEventSwissVisibility = function () {
-      var optedIn = eventSwissToggle.checked;
-      eventSwissFields.style.display = optedIn ? "" : "none";
-      accountTypeRadios.forEach(function (radio) {
-        if (optedIn) radio.setAttribute("required", "required");
-        else radio.removeAttribute("required");
-      });
-      if (prenomField) prenomField.required = optedIn;
-      if (nomField) nomField.required = optedIn;
-      updateAccountTypeVisibility();
-    };
-
-    eventSwissToggle.addEventListener("change", updateEventSwissVisibility);
     accountTypeRadios.forEach(function (radio) {
       radio.addEventListener("change", updateAccountTypeVisibility);
     });
     profileTypeChoiceRadios.forEach(function (radio) {
       radio.addEventListener("change", updateProfileTypeOutput);
     });
-    updateEventSwissVisibility();
+    updateAccountTypeVisibility();
+  }
+
+  if (contactEmailField && eventSwissEmailDisplay) {
+    var updateEmailDisplay = function () {
+      eventSwissEmailDisplay.textContent = contactEmailField.value.trim() || "—";
+    };
+    contactEmailField.addEventListener("input", updateEmailDisplay);
+    updateEmailDisplay();
   }
 
   /* ---------- Validation & soumission AJAX ---------- */
@@ -146,18 +127,8 @@
       }
     });
 
-    var radioGroup = form.querySelector('input[name="type_membre"]');
-    if (radioGroup) {
-      var checked = form.querySelector('input[name="type_membre"]:checked');
-      if (!checked) {
-        showAlert(form, "error", "Veuillez sélectionner un type de membre.");
-        valid = false;
-      }
-    }
-
-    var eventSwissToggleField = form.querySelector("[data-event-swiss-toggle]");
-    if (eventSwissToggleField && eventSwissToggleField.checked) {
-      var checkedAccountType = form.querySelector('input[name="account_type"]:checked');
+    var checkedAccountType = form.querySelector('input[name="account_type"]:checked');
+    if (form.querySelector('input[name="account_type"]')) {
       if (!checkedAccountType) {
         setFieldError(form, "account_type", "Merci de sélectionner une option.");
         valid = false;
@@ -167,6 +138,18 @@
           setFieldError(form, "profile_type_choice", "Merci de sélectionner une option.");
           valid = false;
         }
+      }
+    }
+
+    var pwd = form.querySelector("#password");
+    var pwdConfirm = form.querySelector("#password_confirm");
+    if (pwd && pwdConfirm) {
+      if (pwd.value.length < 8) {
+        setFieldError(form, "password", "8 caractères minimum.");
+        valid = false;
+      } else if (pwd.value !== pwdConfirm.value) {
+        setFieldError(form, "password_confirm", "Les mots de passe ne correspondent pas.");
+        valid = false;
       }
     }
 
@@ -213,13 +196,10 @@
           if (data.success) {
             showAlert(form, "success", data.message || "Merci, votre demande a bien été enregistrée.");
             form.reset();
-            var updateFn = form.querySelector('input[name="type_membre"]');
-            if (updateFn) {
-              var evt = new Event("change");
-              form.querySelectorAll('input[name="type_membre"]').forEach(function (r) {
-                r.dispatchEvent(evt);
-              });
-            }
+            form.querySelectorAll('input[name="account_type"]').forEach(function (r) {
+              r.dispatchEvent(new Event("change"));
+            });
+            if (eventSwissEmailDisplay) eventSwissEmailDisplay.textContent = "—";
           } else {
             if (data.errors) {
               Object.keys(data.errors).forEach(function (fieldName) {

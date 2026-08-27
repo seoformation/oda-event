@@ -79,56 +79,87 @@
           <div class="form-grid">
 
             <fieldset class="field" style="border:none; padding:0; margin:0;">
-              <legend style="font-weight:700; font-size:0.92rem; margin-bottom:0.75rem;">Tipologia di membro <span aria-hidden="true">*</span></legend>
+              <legend style="font-weight:700; font-size:0.92rem; margin-bottom:0.75rem;">Siete... <span aria-hidden="true">*</span></legend>
               <div class="radio-group" role="radiogroup" aria-required="true">
                 <label class="radio-option">
-                  <input type="radio" name="type_membre" value="organisateur" required>
+                  <input type="radio" name="account_type" value="private" data-account-type required>
                   <span>
-                    <strong>Organizzatore / Festival</strong>
-                    <span class="desc">Eventi privati &amp; pubblici</span>
+                    <strong>Privato</strong>
+                    <span class="desc">Talento individuale</span>
                   </span>
                 </label>
                 <label class="radio-option">
-                  <input type="radio" name="type_membre" value="prestataire" required>
+                  <input type="radio" name="account_type" value="company" data-account-type required>
                   <span>
-                    <strong>Fornitore / Azienda</strong>
-                    <span class="desc">Tecnica &amp; fornitori</span>
+                    <strong>Azienda</strong>
+                    <span class="desc">Organizzatore o fornitore</span>
                   </span>
                 </label>
-                <label class="radio-option">
-                  <input type="radio" name="type_membre" value="travailleur" required>
-                  <span>
-                    <strong>Lavoratore</strong>
-                    <span class="desc">Team &amp; professioni dell'evento</span>
-                  </span>
-                </label>
+              </div>
+              <span class="field-error"></span>
+            </fieldset>
+
+            <div class="event-swiss-company-fields" data-event-swiss-company-fields>
+              <fieldset class="field" style="border:none; padding:0; margin:0;">
+                <legend style="font-weight:700; font-size:0.92rem; margin-bottom:0.75rem;">Profilo</legend>
+                <div class="radio-group" role="radiogroup" data-profile-type-group>
+                  <label class="radio-option">
+                    <input type="radio" name="profile_type_choice" value="event" data-profile-type-choice>
+                    <span><strong>Organizzatore / agenzia eventi</strong></span>
+                  </label>
+                  <label class="radio-option">
+                    <input type="radio" name="profile_type_choice" value="provider" data-profile-type-choice>
+                    <span><strong>Fornitore</strong></span>
+                  </label>
+                </div>
+                <span class="field-error"></span>
+              </fieldset>
+            </div>
+
+            <fieldset class="field" style="border:none; padding:0; margin:0;">
+              <legend style="font-weight:700; font-size:0.92rem; margin-bottom:0.75rem;">Il vostro account</legend>
+              <div class="field">
+                <label for="email">E-mail <span aria-hidden="true">*</span></label>
+                <input type="email" id="email" name="email" required autocomplete="email" data-contact-email>
+                <span class="field-error"></span>
+              </div>
+              <div class="form-row-2 form-grid" style="display:grid;">
+                <div class="field">
+                  <label for="password">Crea una password <span aria-hidden="true">*</span></label>
+                  <input type="password" id="password" name="password" required autocomplete="new-password" minlength="8">
+                  <span class="field-error"></span>
+                </div>
+                <div class="field">
+                  <label for="password_confirm">Conferma la password <span aria-hidden="true">*</span></label>
+                  <input type="password" id="password_confirm" name="password_confirm" required autocomplete="new-password" minlength="8">
+                  <span class="field-error"></span>
+                </div>
               </div>
             </fieldset>
 
             <div class="form-row-2 form-grid" style="display:grid;">
               <div class="field">
-                <label for="nom_complet">Nome completo <span aria-hidden="true">*</span></label>
-                <input type="text" id="nom_complet" name="nom_complet" required autocomplete="name">
+                <label for="prenom">Nome <span aria-hidden="true">*</span></label>
+                <input type="text" id="prenom" name="prenom" required autocomplete="given-name">
                 <span class="field-error"></span>
               </div>
-              <div class="field" data-entreprise-field>
-                <label for="entreprise">Nome dell'azienda / struttura</label>
-                <input type="text" id="entreprise" name="entreprise" autocomplete="organization">
+              <div class="field">
+                <label for="nom">Cognome <span aria-hidden="true">*</span></label>
+                <input type="text" id="nom" name="nom" required autocomplete="family-name">
                 <span class="field-error"></span>
               </div>
             </div>
 
-            <div class="form-row-2 form-grid" style="display:grid;">
-              <div class="field">
-                <label for="email">E-mail <span aria-hidden="true">*</span></label>
-                <input type="email" id="email" name="email" required autocomplete="email">
-                <span class="field-error"></span>
-              </div>
-              <div class="field">
-                <label for="telephone">Telefono</label>
-                <input type="tel" id="telephone" name="telephone" autocomplete="tel">
-                <span class="field-error"></span>
-              </div>
+            <div class="field">
+              <label for="telephone">Telefono</label>
+              <input type="tel" id="telephone" name="telephone" autocomplete="tel">
+              <span class="field-error"></span>
+            </div>
+
+            <div class="field">
+              <label for="adresse">Indirizzo postale <span aria-hidden="true">*</span></label>
+              <input type="text" id="adresse" name="adresse" required autocomplete="street-address" placeholder="Via, NPA, località">
+              <span class="field-error"></span>
             </div>
 
             <div class="field">
@@ -165,6 +196,40 @@
               <span class="field-error"></span>
             </div>
 
+            <div class="event-swiss-company-fields" data-event-swiss-company-fields>
+              <div class="form-row-2 form-grid" style="display:grid;">
+                <div class="field">
+                  <label for="legal_name">Ragione sociale <span aria-hidden="true">*</span></label>
+                  <input type="text" id="legal_name" name="legal_name" autocomplete="organization">
+                  <span class="field-error"></span>
+                </div>
+                <div class="field">
+                  <label for="entreprise">Nome da visualizzare <span aria-hidden="true">*</span></label>
+                  <input type="text" id="entreprise" name="entreprise" autocomplete="organization">
+                  <span class="field-error"></span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="company_address">Indirizzo postale dell'azienda <span aria-hidden="true">*</span></label>
+                <input type="text" id="company_address" name="company_address" autocomplete="off" placeholder="Via, NPA, località">
+                <span class="field-error"></span>
+              </div>
+              <div class="form-row-2 form-grid" style="display:grid;">
+                <div class="field">
+                  <label for="company_email">E-mail di contatto dell'azienda</label>
+                  <input type="email" id="company_email" name="company_email" autocomplete="off">
+                  <span class="field-error"></span>
+                </div>
+                <div class="field">
+                  <label for="company_phone">Telefono dell'azienda</label>
+                  <input type="tel" id="company_phone" name="company_phone" autocomplete="off">
+                  <span class="field-error"></span>
+                </div>
+              </div>
+            </div>
+
+            <input type="hidden" name="profile_type" value="" data-profile-type-output>
+
             <div class="field">
               <label for="message">Messaggio / motivazione</label>
               <textarea id="message" name="message" placeholder="Raccontateci in poche righe la vostra attività e le vostre aspettative nei confronti dell'OrTra."></textarea>
@@ -181,102 +246,9 @@
 
             <div class="field">
               <label class="checkbox-field" for="event_swiss_opt_in">
-                <input type="checkbox" id="event_swiss_opt_in" name="event_swiss_opt_in" value="1" data-event-swiss-toggle>
-                <span>Desidero inoltre approfittare gratuitamente della formula <strong>Silver</strong> su <a href="https://event-swiss.com" target="_blank" rel="noopener">event-swiss.com</a>, la piattaforma directory del settore eventi svizzero.</span>
+                <input type="checkbox" id="event_swiss_opt_in" name="event_swiss_opt_in" value="1" data-event-swiss-toggle checked>
+                <span>Desidero approfittare della formula <strong>Silver</strong> offerta gratuitamente dall'associazione su <a href="https://event-swiss.com" target="_blank" rel="noopener">event-swiss.com</a>, la piattaforma directory del settore eventi svizzero (account con <strong data-event-swiss-email-display>—</strong> e la stessa password).</span>
               </label>
-            </div>
-
-            <div class="event-swiss-fields" data-event-swiss-fields>
-
-              <fieldset class="field" style="border:none; padding:0; margin:0;">
-                <legend style="font-weight:700; font-size:0.92rem; margin-bottom:0.75rem;">Mi registro su event-swiss.com come...</legend>
-                <div class="radio-group" role="radiogroup" data-account-type-group>
-                  <label class="radio-option">
-                    <input type="radio" name="account_type" value="private" data-account-type>
-                    <span>
-                      <strong>Privato</strong>
-                      <span class="desc">Talento individuale</span>
-                    </span>
-                  </label>
-                  <label class="radio-option">
-                    <input type="radio" name="account_type" value="company" data-account-type>
-                    <span>
-                      <strong>Azienda</strong>
-                      <span class="desc">Fornitore o organizzatore</span>
-                    </span>
-                  </label>
-                </div>
-                <span class="field-error"></span>
-              </fieldset>
-
-              <div class="form-row-2 form-grid" style="display:grid;">
-                <div class="field">
-                  <label for="prenom">Nome <span aria-hidden="true">*</span></label>
-                  <input type="text" id="prenom" name="prenom" autocomplete="given-name">
-                  <span class="field-error"></span>
-                </div>
-                <div class="field">
-                  <label for="nom">Cognome <span aria-hidden="true">*</span></label>
-                  <input type="text" id="nom" name="nom" autocomplete="family-name">
-                  <span class="field-error"></span>
-                </div>
-              </div>
-
-              <div class="event-swiss-company-fields" data-event-swiss-company-fields>
-
-                <fieldset class="field" style="border:none; padding:0; margin:0;">
-                  <legend style="font-weight:700; font-size:0.92rem; margin-bottom:0.75rem;">Profilo su event-swiss.com</legend>
-                  <div class="radio-group" role="radiogroup" data-profile-type-group>
-                    <label class="radio-option">
-                      <input type="radio" name="profile_type_choice" value="provider" data-profile-type-choice>
-                      <span><strong>Fornitore</strong></span>
-                    </label>
-                    <label class="radio-option">
-                      <input type="radio" name="profile_type_choice" value="event" data-profile-type-choice>
-                      <span><strong>Organizzatore di eventi</strong></span>
-                    </label>
-                  </div>
-                  <span class="field-error"></span>
-                </fieldset>
-
-                <div class="form-row-2 form-grid" style="display:grid;">
-                  <div class="field">
-                    <label for="legal_name">Ragione sociale <span aria-hidden="true">*</span></label>
-                    <input type="text" id="legal_name" name="legal_name" autocomplete="organization">
-                    <span class="field-error"></span>
-                  </div>
-                  <div class="field">
-                    <label for="ide_number">Numero IDI</label>
-                    <input type="text" id="ide_number" name="ide_number" placeholder="CHE-123.456.789">
-                    <span class="field-error"></span>
-                  </div>
-                </div>
-
-                <div class="form-row-2 form-grid" style="display:grid;">
-                  <div class="field">
-                    <label for="entity_type">Forma giuridica <span aria-hidden="true">*</span></label>
-                    <select id="entity_type" name="entity_type">
-                      <option value="" selected disabled>Selezionate una forma giuridica</option>
-                      <option value="individuel">Ditta individuale</option>
-                      <option value="sarl">Sagl</option>
-                      <option value="sa">SA</option>
-                      <option value="association">Associazione</option>
-                      <option value="fondation">Fondazione</option>
-                      <option value="autre">Altro</option>
-                    </select>
-                    <span class="field-error"></span>
-                  </div>
-                  <div class="field">
-                    <label for="legal_representative">Rappresentante legale</label>
-                    <input type="text" id="legal_representative" name="legal_representative">
-                    <span class="field-error"></span>
-                  </div>
-                </div>
-
-              </div>
-
-              <input type="hidden" name="profile_type" value="" data-profile-type-output>
-
             </div>
 
             <!-- Campo honeypot anti-spam: lasciato vuoto dagli umani, nascosto visivamente -->
@@ -344,6 +316,6 @@
   </div>
 </footer>
 
-<script src="assets/js/main.js"></script>
+<script src="assets/js/main.js?v=3"></script>
 </body>
 </html>

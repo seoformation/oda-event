@@ -3,7 +3,8 @@
  * inscription.php — Traitement du formulaire d'adhésion (devenir-membre*.html).
  *
  * Étapes : anti-spam -> validation stricte -> insertion MySQL (PDO préparé)
- * -> e-mail de notification à l'association -> e-mail de confirmation au demandeur.
+ * -> transmission à event-swiss.com -> e-mail de notification à l'association
+ * -> e-mail de confirmation au demandeur.
  * Répond toujours en JSON (le formulaire est soumis en AJAX par assets/js/main.js).
  * Les messages sont traduits selon le champ caché "lang" (fr/de/it, voir i18n.php).
  */
@@ -25,43 +26,50 @@ if (is_probable_spam($_POST)) {
     json_response(true, t($lang, 'success_inscription'));
 }
 
-$typesMembreValides = ['organisateur', 'prestataire', 'travailleur'];
 $cantonsValides = [
     'Argovie', 'Appenzell Rhodes-Intérieures', 'Appenzell Rhodes-Extérieures', 'Berne',
     'Bâle-Campagne', 'Bâle-Ville', 'Fribourg', 'Genève', 'Glaris', 'Grisons', 'Jura',
     'Lucerne', 'Neuchâtel', 'Nidwald', 'Obwald', 'St-Gall', 'Schaffhouse', 'Soleure',
     'Schwyz', 'Thurgovie', 'Tessin', 'Uri', 'Vaud', 'Valais', 'Zoug', 'Zurich',
 ];
+$accountTypesValides = ['private', 'company'];
 
-$typeMembre = trim((string) ($_POST['type_membre'] ?? ''));
-$nomComplet = trim((string) ($_POST['nom_complet'] ?? ''));
-$entreprise = trim((string) ($_POST['entreprise'] ?? ''));
-$email = trim((string) ($_POST['email'] ?? ''));
-$telephone = trim((string) ($_POST['telephone'] ?? ''));
-$canton = trim((string) ($_POST['canton'] ?? ''));
-$message = trim((string) ($_POST['message'] ?? ''));
-$consentement = (string) ($_POST['consentement_rgpd'] ?? '') === '1';
-
-$eventSwissOptIn = (string) ($_POST['event_swiss_opt_in'] ?? '') === '1';
 $accountType = trim((string) ($_POST['account_type'] ?? ''));
 $profileType = trim((string) ($_POST['profile_type'] ?? ''));
 $prenom = trim((string) ($_POST['prenom'] ?? ''));
 $nom = trim((string) ($_POST['nom'] ?? ''));
+$email = trim((string) ($_POST['email'] ?? ''));
+$telephone = trim((string) ($_POST['telephone'] ?? ''));
+$adresse = trim((string) ($_POST['adresse'] ?? ''));
+$canton = trim((string) ($_POST['canton'] ?? ''));
+$message = trim((string) ($_POST['message'] ?? ''));
+$consentement = (string) ($_POST['consentement_rgpd'] ?? '') === '1';
+
 $legalName = trim((string) ($_POST['legal_name'] ?? ''));
-$ideNumber = trim((string) ($_POST['ide_number'] ?? ''));
-$entityType = trim((string) ($_POST['entity_type'] ?? ''));
-$legalRepresentative = trim((string) ($_POST['legal_representative'] ?? ''));
+$entreprise = trim((string) ($_POST['entreprise'] ?? '')); // "Nom à afficher"
+$companyAddress = trim((string) ($_POST['company_address'] ?? ''));
+$companyEmail = trim((string) ($_POST['company_email'] ?? ''));
+$companyPhone = trim((string) ($_POST['company_phone'] ?? ''));
+
+$eventSwissOptIn = (string) ($_POST['event_swiss_opt_in'] ?? '') === '1';
+$password = (string) ($_POST['password'] ?? '');
+$passwordConfirm = (string) ($_POST['password_confirm'] ?? '');
 
 $errors = [];
 
-if (!in_array($typeMembre, $typesMembreValides, true)) {
-    $errors['type_membre'] = t($lang, 'err_type_membre');
+if (!in_array($accountType, $accountTypesValides, true)) {
+    $errors['account_type'] = t($lang, 'err_es_account_type');
 }
-if ($nomComplet === '' || mb_strlen($nomComplet) > 150) {
-    $errors['nom_complet'] = t($lang, 'err_nom_complet');
+$profileTypeCoherent = ($accountType === 'private' && $profileType === 'talent')
+    || ($accountType === 'company' && in_array($profileType, ['provider', 'event'], true));
+if (!$profileTypeCoherent) {
+    $errors['profile_type_choice'] = t($lang, 'err_es_profile_type');
 }
-if (mb_strlen($entreprise) > 150) {
-    $errors['entreprise'] = t($lang, 'err_entreprise');
+if ($prenom === '' || mb_strlen($prenom) > 100) {
+    $errors['prenom'] = t($lang, 'err_es_prenom');
+}
+if ($nom === '' || mb_strlen($nom) > 100) {
+    $errors['nom'] = t($lang, 'err_es_nom');
 }
 if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $errors['email'] = t($lang, 'err_email');
@@ -69,38 +77,44 @@ if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
 if (mb_strlen($telephone) > 50) {
     $errors['telephone'] = t($lang, 'err_telephone');
 }
+if ($adresse === '' || mb_strlen($adresse) > 255) {
+    $errors['adresse'] = t($lang, 'err_adresse');
+}
 if (!in_array($canton, $cantonsValides, true)) {
     $errors['canton'] = t($lang, 'err_canton');
 }
 if (!$consentement) {
     $errors['consentement_rgpd'] = t($lang, 'err_consentement');
 }
-
-if ($eventSwissOptIn) {
-    $accountTypesValides = ['private', 'company'];
-    $entityTypesValides = ['association', 'sarl', 'sa', 'fondation', 'individuel', 'autre'];
-
-    if (!in_array($accountType, $accountTypesValides, true)) {
-        $errors['account_type'] = t($lang, 'err_es_account_type');
+if ($accountType === 'company') {
+    if ($legalName === '' || mb_strlen($legalName) > 150) {
+        $errors['legal_name'] = t($lang, 'err_es_legal_name');
     }
-    $profileTypeCoherent = ($accountType === 'private' && $profileType === 'talent')
-        || ($accountType === 'company' && in_array($profileType, ['provider', 'event'], true));
-    if (!$profileTypeCoherent) {
-        $errors['profile_type_choice'] = t($lang, 'err_es_profile_type');
+    if ($entreprise === '' || mb_strlen($entreprise) > 150) {
+        $errors['entreprise'] = t($lang, 'err_entreprise');
     }
-    if ($prenom === '' || mb_strlen($prenom) > 100) {
-        $errors['prenom'] = t($lang, 'err_es_prenom');
+    if ($companyAddress === '' || mb_strlen($companyAddress) > 255) {
+        $errors['company_address'] = t($lang, 'err_company_address');
     }
-    if ($nom === '' || mb_strlen($nom) > 100) {
-        $errors['nom'] = t($lang, 'err_es_nom');
+    if ($companyEmail !== '' && !filter_var($companyEmail, FILTER_VALIDATE_EMAIL)) {
+        $errors['company_email'] = t($lang, 'err_email');
     }
-    if ($accountType === 'company') {
-        if ($legalName === '' || mb_strlen($legalName) > 150) {
-            $errors['legal_name'] = t($lang, 'err_es_legal_name');
-        }
-        if (!in_array($entityType, $entityTypesValides, true)) {
-            $errors['entity_type'] = t($lang, 'err_es_entity_type');
-        }
+}
+// Le mot de passe crée toujours un compte oda-event.ch (mon-compte.php) ;
+// s'il est en plus transmis à event-swiss.com, c'est uniquement quand la
+// case Silver est cochée (voir plus bas).
+if (mb_strlen($password) < 8) {
+    $errors['password'] = t($lang, 'err_password');
+} elseif ($password !== $passwordConfirm) {
+    $errors['password_confirm'] = t($lang, 'err_password_confirm');
+}
+// E-mail déjà utilisé par un compte existant : interdit un doublon.
+if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $pdoCheck = get_pdo();
+    $checkStmt = $pdoCheck->prepare('SELECT id FROM membres_inscription WHERE email = :email');
+    $checkStmt->execute([':email' => $email]);
+    if ($checkStmt->fetch()) {
+        $errors['email'] = t($lang, 'err_email_exists');
     }
 }
 
@@ -108,46 +122,68 @@ if (!empty($errors)) {
     json_response(false, t($lang, 'errors_generic'), $errors);
 }
 
+// Catégorie OrTra dérivée du choix unifié privé/entreprise + profil, pour
+// rester compatible avec les libellés et e-mails existants (inchangés).
+$typeMembreParProfil = ['talent' => 'travailleur', 'event' => 'organisateur', 'provider' => 'prestataire'];
+$typeMembre = $typeMembreParProfil[$profileType] ?? 'travailleur';
+$nomComplet = trim($prenom . ' ' . $nom);
+
+$montantChf = $accountType === 'company' ? 350 : 150;
+$paymentToken = bin2hex(random_bytes(16));
+$passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
 try {
     $pdo = get_pdo();
     $stmt = $pdo->prepare(
         'INSERT INTO membres_inscription
             (type_membre, nom_complet, entreprise, email, telephone, canton, message, consentement_rgpd,
              event_swiss_opt_in, account_type, profile_type, prenom, nom,
-             es_legal_name, es_ide_number, es_entity_type, es_legal_representative)
+             es_legal_name, es_address, es_company_address, es_company_email, es_company_phone,
+             payment_token, paiement_montant_chf, lang, password_hash)
          VALUES
             (:type_membre, :nom_complet, :entreprise, :email, :telephone, :canton, :message, :consentement_rgpd,
              :event_swiss_opt_in, :account_type, :profile_type, :prenom, :nom,
-             :es_legal_name, :es_ide_number, :es_entity_type, :es_legal_representative)'
+             :es_legal_name, :es_address, :es_company_address, :es_company_email, :es_company_phone,
+             :payment_token, :paiement_montant_chf, :lang, :password_hash)'
     );
     $stmt->execute([
         ':type_membre' => $typeMembre,
         ':nom_complet' => $nomComplet,
-        ':entreprise' => $entreprise !== '' ? $entreprise : null,
+        ':entreprise' => $accountType === 'company' ? $entreprise : null,
         ':email' => $email,
         ':telephone' => $telephone !== '' ? $telephone : null,
         ':canton' => $canton,
         ':message' => $message !== '' ? $message : null,
         ':consentement_rgpd' => 1,
         ':event_swiss_opt_in' => $eventSwissOptIn ? 1 : 0,
-        ':account_type' => $eventSwissOptIn ? $accountType : null,
-        ':profile_type' => $eventSwissOptIn ? $profileType : null,
-        ':prenom' => $eventSwissOptIn ? $prenom : null,
-        ':nom' => $eventSwissOptIn ? $nom : null,
-        ':es_legal_name' => $eventSwissOptIn && $accountType === 'company' ? $legalName : null,
-        ':es_ide_number' => $eventSwissOptIn && $accountType === 'company' && $ideNumber !== '' ? $ideNumber : null,
-        ':es_entity_type' => $eventSwissOptIn && $accountType === 'company' ? $entityType : null,
-        ':es_legal_representative' => $eventSwissOptIn && $accountType === 'company' && $legalRepresentative !== '' ? $legalRepresentative : null,
+        ':account_type' => $accountType,
+        ':profile_type' => $profileType,
+        ':prenom' => $prenom,
+        ':nom' => $nom,
+        ':es_legal_name' => $accountType === 'company' ? $legalName : null,
+        ':es_address' => $adresse,
+        ':es_company_address' => $accountType === 'company' ? $companyAddress : null,
+        ':es_company_email' => $accountType === 'company' && $companyEmail !== '' ? $companyEmail : null,
+        ':es_company_phone' => $accountType === 'company' && $companyPhone !== '' ? $companyPhone : null,
+        ':payment_token' => $paymentToken,
+        ':paiement_montant_chf' => $montantChf,
+        ':lang' => $lang,
+        ':password_hash' => $passwordHash,
     ]);
 } catch (PDOException $ex) {
+    if ((string) $ex->getCode() === '23000') {
+        json_response(false, t($lang, 'errors_generic'), ['email' => t($lang, 'err_email_exists')]);
+    }
     error_log('Erreur MySQL inscription.php : ' . $ex->getMessage());
     json_response(false, t($lang, 'db_error'));
 }
 
-// Transmission best-effort a event-swiss.com : un echec ici ne doit jamais
-// faire echouer la demande d'adhesion OrTra elle-meme (deja enregistree
-// ci-dessus), juste etre journalise pour suivi manuel.
-if ($eventSwissOptIn && defined('EVENT_SWISS_API_URL') && defined('EVENT_SWISS_API_SECRET') && EVENT_SWISS_API_SECRET !== '') {
+// Transmission à event-swiss.com (best-effort : un echec ici ne doit jamais
+// faire echouer la demande d'adhesion OrTra elle-meme, deja enregistree
+// ci-dessus, juste etre journalise pour suivi manuel). Toute demande passe
+// desormais par la file d'attente d'approbation d'event-swiss.com, meme
+// sans option Silver, car c'est elle qui declenche le lien de paiement.
+if (defined('EVENT_SWISS_API_URL') && defined('EVENT_SWISS_API_SECRET') && EVENT_SWISS_API_SECRET !== '') {
     $esPayload = [
         'account_type' => $accountType,
         'profile_type' => $profileType,
@@ -155,10 +191,15 @@ if ($eventSwissOptIn && defined('EVENT_SWISS_API_URL') && defined('EVENT_SWISS_A
         'first_name' => $prenom,
         'last_name' => $nom,
         'phone' => $telephone !== '' ? $telephone : null,
+        'address' => $adresse,
         'legal_name' => $accountType === 'company' ? $legalName : null,
-        'ide_number' => $accountType === 'company' && $ideNumber !== '' ? $ideNumber : null,
-        'entity_type' => $accountType === 'company' ? $entityType : null,
-        'legal_representative' => $accountType === 'company' && $legalRepresentative !== '' ? $legalRepresentative : null,
+        'company_display_name' => $accountType === 'company' ? $entreprise : null,
+        'company_address' => $accountType === 'company' ? $companyAddress : null,
+        'company_email' => $accountType === 'company' && $companyEmail !== '' ? $companyEmail : null,
+        'company_phone' => $accountType === 'company' && $companyPhone !== '' ? $companyPhone : null,
+        'event_swiss_opt_in' => $eventSwissOptIn,
+        'password' => $eventSwissOptIn ? $password : null,
+        'oda_reference' => $paymentToken,
         'lang' => $lang,
     ];
 
@@ -172,6 +213,8 @@ if ($eventSwissOptIn && defined('EVENT_SWISS_API_URL') && defined('EVENT_SWISS_A
             'Authorization: Bearer ' . EVENT_SWISS_API_SECRET,
         ],
         CURLOPT_TIMEOUT => 8,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_MAXREDIRS => 3,
     ]);
     $esResponse = curl_exec($ch);
     $esHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -182,6 +225,8 @@ if ($eventSwissOptIn && defined('EVENT_SWISS_API_URL') && defined('EVENT_SWISS_A
         error_log('Erreur appel event-swiss.com /api/oda/membership : ' . ($esCurlError !== '' ? $esCurlError : (string) $esResponse));
     }
 }
+// $password ne sert plus a rien passe ce point : jamais stockee localement.
+unset($password, $passwordConfirm);
 
 $labelsType = [
     'organisateur' => t($lang, 'type_organisateur'),
@@ -199,11 +244,14 @@ $notifHtml = '<h2>' . e(t('fr', 'notif_new_request')) . '</h2>'
     . ($entreprise !== '' ? '<p><strong>Entreprise :</strong> ' . e($entreprise) . '</p>' : '')
     . '<p><strong>E-mail :</strong> ' . e($email) . '</p>'
     . ($telephone !== '' ? '<p><strong>Téléphone :</strong> ' . e($telephone) . '</p>' : '')
+    . '<p><strong>Adresse :</strong> ' . e($adresse) . '</p>'
     . '<p><strong>Canton :</strong> ' . e($canton) . '</p>'
     . ($message !== '' ? '<p><strong>Message :</strong><br>' . nl2br(e($message)) . '</p>' : '')
-    . ($eventSwissOptIn ? '<p><strong>Formule Silver event-swiss.com demandée :</strong> ' . e($accountType === 'company' ? 'Entreprise' : 'Privé') . ' — ' . e($profileType) . ' (' . e($prenom . ' ' . $nom) . ')</p>' : '');
-$notifAlt = "Langue: $lang\nType: $labelType\nNom: $nomComplet\nEntreprise: $entreprise\nEmail: $email\nTéléphone: $telephone\nCanton: $canton\nMessage: $message"
-    . ($eventSwissOptIn ? "\nformule Silver event-swiss.com demandée: " . ($accountType === 'company' ? 'Entreprise' : 'Privé') . " - $profileType ($prenom $nom)" : '');
+    . '<p><strong>Formule Silver event-swiss.com :</strong> ' . ($eventSwissOptIn ? 'demandée' : 'non demandée') . '</p>'
+    . '<p><strong>Cotisation :</strong> ' . $montantChf . ' CHF</p>';
+$notifAlt = "Langue: $lang\nType: $labelType\nNom: $nomComplet\nEntreprise: $entreprise\nEmail: $email\nTéléphone: $telephone\nAdresse: $adresse\nCanton: $canton\nMessage: $message"
+    . "\nSilver event-swiss.com: " . ($eventSwissOptIn ? 'demandée' : 'non demandée')
+    . "\nCotisation: $montantChf CHF";
 
 send_mail(MAIL_NOTIFICATION_TO, "OrTra Suisse de l'Événementiel", $notifSubject, $notifHtml, $notifAlt, $email);
 
@@ -212,10 +260,12 @@ $confirmSubject = t($lang, 'confirm_subject');
 $confirmHtml = '<p>' . e(t($lang, 'confirm_greeting')) . ' ' . e($nomComplet) . ',</p>'
     . '<p>' . e(t($lang, 'confirm_body1')) . ' <strong>' . e($labelType) . '</strong>.</p>'
     . '<p>' . e(t($lang, 'confirm_body2')) . '</p>'
+    . '<p>' . e(t($lang, 'confirm_account')) . ' <a href="' . e(rtrim(SITE_URL, '/')) . '/connexion.php">connexion.php</a>.</p>'
     . '<p>' . t($lang, 'confirm_signature') . '</p>';
 $confirmAlt = t($lang, 'confirm_greeting') . " $nomComplet,\n\n"
     . t($lang, 'confirm_body1') . " $labelType.\n"
-    . t($lang, 'confirm_body2');
+    . t($lang, 'confirm_body2') . "\n"
+    . t($lang, 'confirm_account');
 
 send_mail($email, $nomComplet, $confirmSubject, $confirmHtml, $confirmAlt);
 

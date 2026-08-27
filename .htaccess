@@ -5,6 +5,12 @@ RewriteEngine On
 RewriteCond %{HTTPS} off
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
+# Certaines configurations Apache/PHP-FPM ne transmettent pas l'en-tête
+# Authorization à PHP par défaut : nécessaire pour statut-webhook.php
+# (appelé par event-swiss.com avec "Authorization: Bearer ...").
+RewriteCond %{HTTP:Authorization} ^(.*)
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%1]
+
 # Bloque l'accès direct aux fichiers PHP sensibles (identifiants, fonctions internes)
 <FilesMatch "^(config|functions|db|i18n)\.php$">
   Require all denied
