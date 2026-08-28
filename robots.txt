@@ -3,7 +3,19 @@ Allow: /
 Disallow: /config.php
 Disallow: /functions.php
 Disallow: /db.php
+Disallow: /i18n.php
 Disallow: /assets/lib/
 Disallow: /sql/
+Disallow: /connexion.php
+Disallow: /deconnexion.php
+Disallow: /mon-compte.php
+Disallow: /admin.php
+Disallow: /admin-connexion.php
+Disallow: /admin-deconnexion.php
+Disallow: /paiement.php
+Disallow: /paiement-webhook.php
+Disallow: /statut-webhook.php
+Disallow: /inscription.php
+Disallow: /contact.php
 
 Sitemap: https://oda-event.ch/sitemap.xml

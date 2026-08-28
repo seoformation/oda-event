@@ -16,6 +16,12 @@ RewriteRule .* - [E=HTTP_AUTHORIZATION:%1]
   Require all denied
 </FilesMatch>
 
+# Bloque l'accès aux journaux d'erreurs PHP (peuvent apparaître si aucun
+# chemin de log n'est explicitement configuré côté serveur)
+<FilesMatch "^error_log$">
+  Require all denied
+</FilesMatch>
+
 # Empêche l'affichage du contenu des dossiers
 Options -Indexes
 

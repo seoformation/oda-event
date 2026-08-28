@@ -128,7 +128,9 @@ $typeMembreParProfil = ['talent' => 'travailleur', 'event' => 'organisateur', 'p
 $typeMembre = $typeMembreParProfil[$profileType] ?? 'travailleur';
 $nomComplet = trim($prenom . ' ' . $nom);
 
-$montantChf = $accountType === 'company' ? 350 : 150;
+// Montants conformes aux statuts de l'association (art. 9) : CHF 100 pour
+// une personne physique, CHF 300 pour une personne morale.
+$montantChf = $accountType === 'company' ? 300 : 100;
 $paymentToken = bin2hex(random_bytes(16));
 $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
