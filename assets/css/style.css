@@ -149,7 +149,7 @@ h3 { font-size: 1.25rem; line-height: 1.3; }
   color: var(--green-900);
 }
 .btn-outline-dark:hover { border-color: var(--gold-dark); color: var(--gold-dark); }
-.btn-block { width: 100%; justify-content: center; }
+.btn-block { width: 100%; justify-content: center; white-space: normal; text-align: center; }
 
 /* ---------- Header / Nav ---------- */
 .site-header {
