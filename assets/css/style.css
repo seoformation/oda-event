@@ -205,14 +205,14 @@ h3 { font-size: 1.25rem; line-height: 1.3; }
   gap: 0.25rem;
 }
 .main-nav.is-open { display: flex; }
-.main-nav a:not(.btn) {
+.main-nav > a:not(.btn) {
   color: var(--text-on-dark-secondary);
   font-weight: 600;
   font-size: 0.95rem;
   padding: 0.75rem 0.25rem;
   border-bottom: 1px solid var(--border-dark);
 }
-.main-nav a:not(.btn):hover, .main-nav a.is-active:not(.btn) { color: var(--white); }
+.main-nav > a:not(.btn):hover, .main-nav > a.is-active:not(.btn) { color: var(--white); }
 .main-nav .btn { margin-top: 0.75rem; }
 
 .lang-switch {
@@ -249,7 +249,7 @@ h3 { font-size: 1.25rem; line-height: 1.3; }
     gap: 2rem;
     width: auto;
   }
-  .main-nav a:not(.btn) { border-bottom: none; padding: 0.25rem 0; }
+  .main-nav > a:not(.btn) { border-bottom: none; padding: 0.25rem 0; }
   .main-nav .btn { margin-top: 0; margin-left: 0.5rem; }
   .lang-switch { border-bottom: none; padding: 0; }
 }
