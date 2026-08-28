@@ -176,7 +176,7 @@ h3 { font-size: 1.25rem; line-height: 1.3; }
   color: var(--white);
   letter-spacing: -0.01em;
 }
-.brand-logo { height: 40px; width: auto; display: block; border-radius: 6px; }
+.brand-logo { height: 56px; width: auto; display: block; border-radius: 6px; }
 
 .nav-toggle {
   background: none;
@@ -503,7 +503,7 @@ h3 { font-size: 1.25rem; line-height: 1.3; }
   .footer-grid { grid-template-columns: 1.3fr 1fr 1fr; }
 }
 .footer-brand { display: flex; align-items: center; gap: 0.6rem; color: var(--white); font-family: var(--font-heading); font-weight: 800; margin-bottom: 1rem; }
-.footer-logo { height: 34px; width: auto; display: block; border-radius: 5px; }
+.footer-logo { height: 46px; width: auto; display: block; border-radius: 5px; }
 
 .footer-bottom .lang-switch { padding: 0; border-bottom: none; }
 .footer-col h4 {

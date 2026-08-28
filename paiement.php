@@ -24,7 +24,7 @@ function render_page(string $title, string $bodyHtml): void
     echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">'
         . '<meta name="robots" content="noindex, nofollow">'
         . '<title>' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '</title>'
-        . '<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">'
+        . '<link rel="icon" href="assets/img/favicon.svg?v=2" type="image/svg+xml">'
         . '<link rel="stylesheet" href="assets/css/style.css"></head><body>'
         . '<main><section class="section section--light"><div class="container">'
         . '<div class="form-card" style="max-width:560px;">' . $bodyHtml . '</div>'

@@ -112,7 +112,7 @@ $admins = $pdo->query('SELECT id, email, nom, created_at FROM admins ORDER BY cr
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Espace admin — OrTra Suisse de l'Événementiel</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/img/favicon.svg?v=2" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
