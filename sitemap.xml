@@ -64,6 +64,37 @@
   </url>
 
   <url>
+    <loc>https://oda-event.ch/utilite-ortra.html</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://oda-event.ch/utilite-ortra.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://oda-event.ch/utilite-ortra.de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://oda-event.ch/utilite-ortra.it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://oda-event.ch/utilite-ortra.html"/>
+  </url>
+  <url>
+    <loc>https://oda-event.ch/utilite-ortra.de.html</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://oda-event.ch/utilite-ortra.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://oda-event.ch/utilite-ortra.de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://oda-event.ch/utilite-ortra.it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://oda-event.ch/utilite-ortra.html"/>
+  </url>
+  <url>
+    <loc>https://oda-event.ch/utilite-ortra.it.html</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://oda-event.ch/utilite-ortra.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://oda-event.ch/utilite-ortra.de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://oda-event.ch/utilite-ortra.it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://oda-event.ch/utilite-ortra.html"/>
+  </url>
+
+  <url>
     <loc>https://oda-event.ch/faq.html</loc>
     <lastmod>2026-08-28</lastmod>
     <changefreq>monthly</changefreq>

@@ -273,6 +273,15 @@ h3 { font-size: 1.25rem; line-height: 1.3; }
   gap: 1rem;
   justify-content: center;
 }
+.hero-link {
+  display: inline-block;
+  margin-top: 1.75rem;
+  color: var(--text-on-dark-secondary);
+  font-size: 0.9rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.hero-link:hover { color: var(--gold); }
 
 /* ---------- Stat grid ---------- */
 .stat-grid {
