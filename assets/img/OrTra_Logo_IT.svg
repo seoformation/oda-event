@@ -1,9 +1,9 @@
-<svg viewBox="0 15 600 325" xmlns="http://www.w3.org/2000/svg">
-  <g transform="translate(46,46)">
+<svg viewBox="60 30 480 254" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(300,55)">
     <rect x="-3" y="-13" width="6" height="26" fill="#C9A15A"/>
     <rect x="-13" y="-3" width="26" height="6" fill="#C9A15A"/>
   </g>
-  <text x="300" y="245" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="128" fill="#FFFFFF">OmL</text>
-  <line x1="255" y1="278" x2="345" y2="278" stroke="#C9A15A" stroke-width="3"/>
-  <text x="300" y="318" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="26" letter-spacing="10" fill="#C9A15A">EVENT</text>
+  <text x="300" y="200" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="148" fill="#FFFFFF">OmL</text>
+  <line x1="248" y1="238" x2="352" y2="238" stroke="#C9A15A" stroke-width="3"/>
+  <text x="300" y="272" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="30" letter-spacing="11" fill="#C9A15A">EVENT</text>
 </svg>
