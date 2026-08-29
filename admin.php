@@ -52,6 +52,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
         $stmt = $pdo->prepare('UPDATE evenements SET publie = 1 - publie WHERE id = :id');
         $stmt->execute([':id' => $id]);
         $tab = 'evenements';
+    } elseif ($action === 'promouvoir_admin') {
+        $email = trim((string) ($_POST['email'] ?? ''));
+        $nom = trim((string) ($_POST['nom'] ?? ''));
+        if ($email === '' || $nom === '') {
+            $notice = "E-mail et nom sont obligatoires.";
+        } else {
+            $existing = $pdo->prepare('SELECT id FROM admins WHERE email = :email');
+            $existing->execute([':email' => $email]);
+            if ($existing->fetch()) {
+                $notice = "Cette personne a déjà un compte admin.";
+            } else {
+                $genereMotDePasse = generer_mot_de_passe_admin();
+                $stmt = $pdo->prepare('INSERT INTO admins (email, password_hash, nom) VALUES (:email, :password_hash, :nom)');
+                $stmt->execute([
+                    ':email' => $email,
+                    ':password_hash' => password_hash($genereMotDePasse, PASSWORD_DEFAULT),
+                    ':nom' => $nom,
+                ]);
+                $notice = "Compte admin créé pour " . $nom . ". Mot de passe généré : " . $genereMotDePasse . " — communiquez-le en toute sécurité à cette personne, il ne sera plus jamais affiché.";
+            }
+        }
+        $tab = 'demandes';
     } elseif ($action === 'creer_admin') {
         $email = trim((string) ($_POST['email'] ?? ''));
         $nom = trim((string) ($_POST['nom'] ?? ''));
@@ -137,12 +159,13 @@ $admins = $pdo->query('SELECT id, email, nom, created_at FROM admins ORDER BY cr
         </nav>
 
         <?php if ($tab === 'demandes'): ?>
-          <p style="font-size:0.85rem; color:#666;">L'acceptation/refus des demandes se fait sur event-swiss.com (panneau admin, onglet « Adhésions OrTra »). Cette liste est en lecture seule, mise à jour automatiquement après décision.</p>
+          <p style="font-size:0.85rem; color:#666;">L'acceptation/refus des demandes se fait sur event-swiss.com (panneau admin, onglet « Adhésions OrTra »). Cette liste est en lecture seule, mise à jour automatiquement après décision. Vous pouvez toutefois donner un accès admin OrTra à une personne directement depuis cette liste.</p>
           <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
             <thead><tr style="text-align:left; border-bottom:1px solid #e2e2e2;">
-              <th style="padding:0.5rem;">Nom</th><th>E-mail</th><th>Type</th><th>Statut</th><th>Paiement</th><th>Date</th>
+              <th style="padding:0.5rem;">Nom</th><th>E-mail</th><th>Type</th><th>Statut</th><th>Paiement</th><th>Date</th><th>Accès admin</th>
             </tr></thead>
             <tbody>
+              <?php $adminEmails = array_column($admins, 'email'); ?>
               <?php foreach ($demandes as $d): ?>
                 <tr style="border-bottom:1px solid #f0f0f0;">
                   <td style="padding:0.5rem;"><?= e((string) $d['prenom'] . ' ' . (string) $d['nom']) ?></td>
@@ -151,6 +174,19 @@ $admins = $pdo->query('SELECT id, email, nom, created_at FROM admins ORDER BY cr
                   <td><?= e((string) $d['statut_admission']) ?></td>
                   <td><?= e((string) $d['paiement_statut']) ?></td>
                   <td><?= e(date('d.m.Y', strtotime((string) $d['date_inscription']))) ?></td>
+                  <td>
+                    <?php if (in_array((string) $d['email'], $adminEmails, true)): ?>
+                      <span style="font-size:0.8rem; color:#666;">Déjà admin</span>
+                    <?php else: ?>
+                      <form method="post" onsubmit="return confirm('Créer un compte admin pour <?= e(addslashes((string) $d['prenom'] . ' ' . (string) $d['nom'])) ?> ?');">
+                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                        <input type="hidden" name="action" value="promouvoir_admin">
+                        <input type="hidden" name="email" value="<?= e((string) $d['email']) ?>">
+                        <input type="hidden" name="nom" value="<?= e((string) $d['prenom'] . ' ' . (string) $d['nom']) ?>">
+                        <button type="submit" class="btn btn-secondary" style="font-size:0.75rem; padding:0.3rem 0.6rem;">Passer admin</button>
+                      </form>
+                    <?php endif; ?>
+                  </td>
                 </tr>
               <?php endforeach; ?>
             </tbody>

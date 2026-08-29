@@ -86,6 +86,22 @@ function e(string $value): string
 }
 
 /**
+ * Génère un mot de passe temporaire lisible (sans caractères ambigus type
+ * 0/O ou 1/l/I) pour la création rapide d'un compte admin depuis
+ * admin.php. Affiché une seule fois à l'admin qui promeut la personne,
+ * jamais stocké en clair ni journalisé.
+ */
+function generer_mot_de_passe_admin(): string
+{
+    $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%';
+    $password = '';
+    for ($i = 0; $i < 16; $i++) {
+        $password .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+    }
+    return $password;
+}
+
+/**
  * Retire les caractères de contrôle (CR/LF notamment) d'une saisie
  * utilisateur avant usage dans un en-tête d'e-mail (Subject). PHPMailer
  * protège déjà contre l'injection d'en-têtes via ses propriétés, mais on ne
