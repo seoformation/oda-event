@@ -192,7 +192,7 @@ $nbEvenementsPublies = count(array_filter($evenements, fn ($ev) => (int) $ev['pu
 <title>Espace admin — OrTra Suisse de l'Événementiel</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="assets/img/favicon.svg?v=2" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/style.css?v=14">
+<link rel="stylesheet" href="assets/css/style.css?v=15">
 </head>
 <body>
 <main>
@@ -242,7 +242,7 @@ $nbEvenementsPublies = count(array_filter($evenements, fn ($ev) => (int) $ev['pu
           <div class="admin-table-wrap">
           <table class="admin-table">
             <thead><tr>
-              <th>Nom</th><th>E-mail</th><th>Type</th><th>Statut</th><th>Paiement</th><th>event-swiss.com</th><th>Date</th><th>Décision</th><th>Accès admin</th>
+              <th>Nom</th><th>E-mail</th><th>Type</th><th>Statut</th><th>Paiement</th><th>event-swiss.com</th><th>Date</th><th>Actions</th>
             </tr></thead>
             <tbody>
               <?php $adminEmails = array_column($admins, 'email'); ?>
@@ -263,8 +263,8 @@ $nbEvenementsPublies = count(array_filter($evenements, fn ($ev) => (int) $ev['pu
                   </td>
                   <td><?= e(date('d.m.Y', strtotime((string) $d['date_inscription']))) ?></td>
                   <td>
-                    <?php if ((string) $d['statut_admission'] === 'en_attente' && (string) $d['payment_token'] !== ''): ?>
-                      <div class="admin-actions">
+                    <div class="admin-actions">
+                      <?php if ((string) $d['statut_admission'] === 'en_attente' && (string) $d['payment_token'] !== ''): ?>
                         <form method="post" onsubmit="return confirm('Accepter la demande de <?= e(addslashes((string) $d['prenom'] . ' ' . (string) $d['nom'])) ?> ?');">
                           <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
                           <input type="hidden" name="action" value="decider_adhesion">
@@ -279,23 +279,19 @@ $nbEvenementsPublies = count(array_filter($evenements, fn ($ev) => (int) $ev['pu
                           <input type="hidden" name="decision" value="reject">
                           <button type="submit" class="btn-danger-outline btn-xs" style="border-radius:6px;">Refuser</button>
                         </form>
-                      </div>
-                    <?php else: ?>
-                      <span class="badge badge-neutral">—</span>
-                    <?php endif; ?>
-                  </td>
-                  <td>
-                    <?php if (in_array((string) $d['email'], $adminEmails, true)): ?>
-                      <span class="badge badge-neutral">Déjà admin</span>
-                    <?php else: ?>
-                      <form method="post" onsubmit="return confirm('Créer un compte admin pour <?= e(addslashes((string) $d['prenom'] . ' ' . (string) $d['nom'])) ?> ?');">
-                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-                        <input type="hidden" name="action" value="promouvoir_admin">
-                        <input type="hidden" name="email" value="<?= e((string) $d['email']) ?>">
-                        <input type="hidden" name="nom" value="<?= e((string) $d['prenom'] . ' ' . (string) $d['nom']) ?>">
-                        <button type="submit" class="btn btn-secondary btn-xs">Passer admin</button>
-                      </form>
-                    <?php endif; ?>
+                      <?php endif; ?>
+                      <?php if (in_array((string) $d['email'], $adminEmails, true)): ?>
+                        <span class="badge badge-neutral">Déjà admin</span>
+                      <?php else: ?>
+                        <form method="post" onsubmit="return confirm('Créer un compte admin pour <?= e(addslashes((string) $d['prenom'] . ' ' . (string) $d['nom'])) ?> ?');">
+                          <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                          <input type="hidden" name="action" value="promouvoir_admin">
+                          <input type="hidden" name="email" value="<?= e((string) $d['email']) ?>">
+                          <input type="hidden" name="nom" value="<?= e((string) $d['prenom'] . ' ' . (string) $d['nom']) ?>">
+                          <button type="submit" class="btn btn-secondary btn-xs">Passer admin</button>
+                        </form>
+                      <?php endif; ?>
+                    </div>
                   </td>
                 </tr>
               <?php endforeach; ?>
