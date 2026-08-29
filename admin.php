@@ -1,9 +1,11 @@
 <?php
 /**
  * admin.php — Espace équipe OrTra : gestion des événements affichés aux
- * membres, envoi de messages, et vue en lecture seule des demandes
- * d'adhésion (le statut vient de statut-webhook.php, appelé par
- * event-swiss.com — l'acceptation/refus reste décidée là-bas).
+ * membres, envoi de messages, et gestion des demandes d'adhésion.
+ * L'acceptation/refus peut se faire ici (appel à
+ * event-swiss.com/api/oda/decide-membership) ou depuis le panneau admin
+ * event-swiss.com — les deux points d'entrée partagent la même logique de
+ * décision là-bas ; statut-webhook.php reflète ensuite le résultat ici.
  */
 
 declare(strict_types=1);
@@ -41,6 +43,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
             $notice = "Événement créé.";
         }
         $tab = 'evenements';
+    } elseif ($action === 'decider_adhesion') {
+        $paymentToken = trim((string) ($_POST['payment_token'] ?? ''));
+        $decision = (string) ($_POST['decision'] ?? '');
+        if ($paymentToken === '' || !in_array($decision, ['approve', 'reject'], true)) {
+            $notice = "Requête invalide.";
+        } elseif (!defined('EVENT_SWISS_API_URL') || !defined('EVENT_SWISS_API_SECRET') || EVENT_SWISS_API_SECRET === '') {
+            $notice = "Configuration manquante pour contacter event-swiss.com.";
+        } else {
+            $ch = curl_init(rtrim(EVENT_SWISS_API_URL, '/') . '/api/oda/decide-membership');
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => json_encode(['oda_reference' => $paymentToken, 'decision' => $decision]),
+                CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'Authorization: Bearer ' . EVENT_SWISS_API_SECRET],
+                CURLOPT_TIMEOUT => 20,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_MAXREDIRS => 3,
+            ]);
+            $resp = curl_exec($ch);
+            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlErr = curl_error($ch);
+            curl_close($ch);
+            if ($curlErr !== '' || $code < 200 || $code >= 300) {
+                error_log('Erreur decide-membership event-swiss.com : ' . ($curlErr !== '' ? $curlErr : (string) $resp));
+                $notice = "Erreur lors de la communication avec event-swiss.com. Réessayez, ou traitez la demande depuis le panneau admin event-swiss.com.";
+            } else {
+                $notice = $decision === 'approve' ? "Demande acceptée." : "Demande refusée.";
+            }
+        }
+        $tab = 'demandes';
     } elseif ($action === 'supprimer_evenement') {
         $id = (int) ($_POST['id'] ?? 0);
         $stmt = $pdo->prepare('DELETE FROM evenements WHERE id = :id');
@@ -123,7 +155,7 @@ $messages = $pdo->query(
      FROM messages_membres m LEFT JOIN membres_inscription mi ON mi.id = m.membre_id
      ORDER BY m.created_at DESC LIMIT 50'
 )->fetchAll();
-$demandes = $pdo->query('SELECT id, prenom, nom, email, account_type, profile_type, statut_admission, paiement_statut, date_inscription FROM membres_inscription ORDER BY date_inscription DESC')->fetchAll();
+$demandes = $pdo->query('SELECT id, prenom, nom, email, account_type, profile_type, statut_admission, paiement_statut, payment_token, event_swiss_opt_in, date_inscription FROM membres_inscription ORDER BY date_inscription DESC')->fetchAll();
 $membresPourMessage = $pdo->query('SELECT id, prenom, nom, email FROM membres_inscription ORDER BY nom, prenom')->fetchAll();
 $admins = $pdo->query('SELECT id, email, nom, created_at FROM admins ORDER BY created_at DESC')->fetchAll();
 ?>
@@ -159,10 +191,10 @@ $admins = $pdo->query('SELECT id, email, nom, created_at FROM admins ORDER BY cr
         </nav>
 
         <?php if ($tab === 'demandes'): ?>
-          <p style="font-size:0.85rem; color:#666;">L'acceptation/refus des demandes se fait sur event-swiss.com (panneau admin, onglet « Adhésions OrTra »). Cette liste est en lecture seule, mise à jour automatiquement après décision. Vous pouvez toutefois donner un accès admin OrTra à une personne directement depuis cette liste.</p>
+          <p style="font-size:0.85rem; color:#666;">Vous pouvez accepter ou refuser une demande directement ici, ou depuis le panneau admin event-swiss.com (onglet « Adhésions OrTra ») — les deux sont équivalents. Vous pouvez aussi donner un accès admin OrTra à une personne depuis cette liste.</p>
           <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
             <thead><tr style="text-align:left; border-bottom:1px solid #e2e2e2;">
-              <th style="padding:0.5rem;">Nom</th><th>E-mail</th><th>Type</th><th>Statut</th><th>Paiement</th><th>Date</th><th>Accès admin</th>
+              <th style="padding:0.5rem;">Nom</th><th>E-mail</th><th>Type</th><th>Statut</th><th>Paiement</th><th>event-swiss.com</th><th>Date</th><th>Décision</th><th>Accès admin</th>
             </tr></thead>
             <tbody>
               <?php $adminEmails = array_column($admins, 'email'); ?>
@@ -173,7 +205,34 @@ $admins = $pdo->query('SELECT id, email, nom, created_at FROM admins ORDER BY cr
                   <td><?= e((string) $d['account_type']) ?> / <?= e((string) $d['profile_type']) ?></td>
                   <td><?= e((string) $d['statut_admission']) ?></td>
                   <td><?= e((string) $d['paiement_statut']) ?></td>
+                  <td style="text-align:center;">
+                    <?php if ((int) $d['event_swiss_opt_in'] === 1): ?>
+                      <span title="A demandé un compte event-swiss.com" style="color:var(--gold); font-weight:bold;">★ Oui</span>
+                    <?php else: ?>
+                      <span style="font-size:0.8rem; color:#666;">Non</span>
+                    <?php endif; ?>
+                  </td>
                   <td><?= e(date('d.m.Y', strtotime((string) $d['date_inscription']))) ?></td>
+                  <td>
+                    <?php if ((string) $d['statut_admission'] === 'en_attente' && (string) $d['payment_token'] !== ''): ?>
+                      <form method="post" style="display:inline-block;" onsubmit="return confirm('Accepter la demande de <?= e(addslashes((string) $d['prenom'] . ' ' . (string) $d['nom'])) ?> ?');">
+                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                        <input type="hidden" name="action" value="decider_adhesion">
+                        <input type="hidden" name="payment_token" value="<?= e((string) $d['payment_token']) ?>">
+                        <input type="hidden" name="decision" value="approve">
+                        <button type="submit" class="btn btn-primary" style="font-size:0.75rem; padding:0.3rem 0.6rem;">Accepter</button>
+                      </form>
+                      <form method="post" style="display:inline-block;" onsubmit="return confirm('Refuser la demande de <?= e(addslashes((string) $d['prenom'] . ' ' . (string) $d['nom'])) ?> ?');">
+                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                        <input type="hidden" name="action" value="decider_adhesion">
+                        <input type="hidden" name="payment_token" value="<?= e((string) $d['payment_token']) ?>">
+                        <input type="hidden" name="decision" value="reject">
+                        <button type="submit" class="btn btn-secondary" style="font-size:0.75rem; padding:0.3rem 0.6rem;">Refuser</button>
+                      </form>
+                    <?php else: ?>
+                      <span style="font-size:0.8rem; color:#666;">—</span>
+                    <?php endif; ?>
+                  </td>
                   <td>
                     <?php if (in_array((string) $d['email'], $adminEmails, true)): ?>
                       <span style="font-size:0.8rem; color:#666;">Déjà admin</span>
