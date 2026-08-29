@@ -776,4 +776,53 @@ h3 { font-size: 1.25rem; line-height: 1.3; }
 .legal-content h2:first-child { margin-top: 0; }
 .legal-content p, .legal-content li { color: var(--text-on-light-secondary); margin-bottom: 0.9rem; font-size: 0.98rem; }
 .legal-content ul { padding-left: 1.4rem; list-style: disc; }
+
+/* ==========================================================================
+   Espace admin (admin.php)
+   ========================================================================== */
+.admin-topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.75rem; flex-wrap: wrap; }
+.admin-topbar h1 { margin: 0; font-size: 1.5rem; }
+
+.admin-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.85rem; margin-bottom: 1.75rem; }
+.admin-stat { background: #fff; border: 1px solid var(--border-light); border-radius: 10px; padding: 0.9rem 1.1rem; }
+.admin-stat strong { display: block; font-size: 1.6rem; font-family: var(--font-heading); color: var(--green-900); line-height: 1.1; }
+.admin-stat span { font-size: 0.8rem; color: var(--text-on-light-secondary); }
+.admin-stat--highlight { border-color: var(--gold); background: #FBF6EA; }
+
+.admin-tabs { display: flex; gap: 0.25rem; margin-bottom: 1.75rem; border-bottom: 1px solid var(--border-light); overflow-x: auto; }
+.admin-tabs a { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.65rem 1rem; font-size: 0.9rem; font-weight: 600; color: var(--text-on-light-secondary); border-bottom: 2px solid transparent; white-space: nowrap; }
+.admin-tabs a.is-active { color: var(--green-900); border-bottom-color: var(--gold); }
+.admin-tabs a .count { background: var(--green-900); color: #fff; font-size: 0.7rem; font-weight: 700; border-radius: 999px; padding: 0.05rem 0.45rem; }
+
+.admin-table-wrap { overflow-x: auto; border: 1px solid var(--border-light); border-radius: 10px; }
+.admin-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; min-width: 760px; }
+.admin-table th { text-align: left; padding: 0.7rem 0.85rem; background: #F7F5EF; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-on-light-secondary); border-bottom: 1px solid var(--border-light); white-space: nowrap; }
+.admin-table td { padding: 0.7rem 0.85rem; border-bottom: 1px solid #f0eee6; vertical-align: middle; }
+.admin-table tbody tr:last-child td { border-bottom: none; }
+.admin-table tbody tr:hover { background: #FAF9F5; }
+
+.badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+.badge-pending { background: #FDF3DC; color: #8A6317; }
+.badge-accepted { background: #E7F4EC; color: #1E6B3F; }
+.badge-rejected { background: #FCEEEC; color: #8B2E22; }
+.badge-neutral { background: #EFEEE8; color: #6B6A62; }
+.badge-star { background: #FBF1DC; color: #8A6317; }
+
+.admin-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.btn-xs { font-size: 0.75rem; padding: 0.3rem 0.7rem; }
+.btn-danger-outline { border: 1px solid #E3B7AE; color: #8B2E22; background: #fff; }
+.btn-danger-outline:hover { background: #FCEEEC; }
+
+.admin-empty { padding: 2.5rem 1rem; text-align: center; color: var(--text-on-light-secondary); font-size: 0.9rem; }
+
+.admin-card-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.admin-card { border: 1px solid var(--border-light); border-radius: 10px; padding: 1rem 1.1rem; background: #fff; }
+.admin-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
+.admin-card-head strong { font-family: var(--font-heading); }
+.admin-card-meta { font-size: 0.8rem; color: var(--text-on-light-secondary); margin-top: 0.2rem; }
+.admin-card-actions { display: flex; gap: 0.6rem; margin-top: 0.75rem; }
+
+.admin-section-title { font-size: 0.95rem; font-family: var(--font-heading); font-weight: 700; margin: 1.75rem 0 0.85rem; color: var(--green-900); }
+.admin-section-title:first-child { margin-top: 0; }
+.admin-hint { font-size: 0.85rem; color: var(--text-on-light-secondary); margin-bottom: 1.25rem; }
 .legal-content strong { color: var(--text-on-light); }

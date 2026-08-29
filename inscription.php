@@ -239,18 +239,22 @@ $labelType = $labelsType[$typeMembre] ?? $typeMembre;
 
 // E-mail de notification à l'association (toujours en français, langue de travail interne)
 $notifSubject = t('fr', 'notif_new_request') . ' — ' . $nomComplet . ' [' . strtoupper($lang) . ']';
-$notifHtml = '<h2>' . e(t('fr', 'notif_new_request')) . '</h2>'
-    . '<p><strong>Langue du formulaire :</strong> ' . e(strtoupper($lang)) . '</p>'
-    . '<p><strong>Type de membre :</strong> ' . e($labelType) . '</p>'
-    . '<p><strong>Nom complet :</strong> ' . e($nomComplet) . '</p>'
-    . ($entreprise !== '' ? '<p><strong>Entreprise :</strong> ' . e($entreprise) . '</p>' : '')
-    . '<p><strong>E-mail :</strong> ' . e($email) . '</p>'
-    . ($telephone !== '' ? '<p><strong>Téléphone :</strong> ' . e($telephone) . '</p>' : '')
-    . '<p><strong>Adresse :</strong> ' . e($adresse) . '</p>'
-    . '<p><strong>Canton :</strong> ' . e($canton) . '</p>'
-    . ($message !== '' ? '<p><strong>Message :</strong><br>' . nl2br(e($message)) . '</p>' : '')
-    . '<p><strong>Formule Silver event-swiss.com :</strong> ' . ($eventSwissOptIn ? 'demandée' : 'non demandée') . '</p>'
-    . '<p><strong>Cotisation :</strong> ' . $montantChf . ' CHF</p>';
+$notifHtml = render_email_html(
+    '<h2 style="margin:0 0 18px; font-size:18px; color:#0F3D2A;">' . e(t('fr', 'notif_new_request')) . '</h2>'
+    . '<p style="margin:0 0 10px;"><strong>Langue du formulaire :</strong> ' . e(strtoupper($lang)) . '</p>'
+    . '<p style="margin:0 0 10px;"><strong>Type de membre :</strong> ' . e($labelType) . '</p>'
+    . '<p style="margin:0 0 10px;"><strong>Nom complet :</strong> ' . e($nomComplet) . '</p>'
+    . ($entreprise !== '' ? '<p style="margin:0 0 10px;"><strong>Entreprise :</strong> ' . e($entreprise) . '</p>' : '')
+    . '<p style="margin:0 0 10px;"><strong>E-mail :</strong> ' . e($email) . '</p>'
+    . ($telephone !== '' ? '<p style="margin:0 0 10px;"><strong>Téléphone :</strong> ' . e($telephone) . '</p>' : '')
+    . '<p style="margin:0 0 10px;"><strong>Adresse :</strong> ' . e($adresse) . '</p>'
+    . '<p style="margin:0 0 10px;"><strong>Canton :</strong> ' . e($canton) . '</p>'
+    . ($message !== '' ? '<p style="margin:0 0 10px;"><strong>Message :</strong><br>' . nl2br(e($message)) . '</p>' : '')
+    . '<p style="margin:0 0 10px;"><strong>Formule Silver event-swiss.com :</strong> ' . ($eventSwissOptIn ? 'demandée' : 'non demandée') . '</p>'
+    . '<p style="margin:0;"><strong>Cotisation :</strong> ' . $montantChf . ' CHF</p>',
+    rtrim(SITE_URL, '/') . '/admin.php?tab=demandes',
+    'Traiter la demande'
+);
 $notifAlt = "Langue: $lang\nType: $labelType\nNom: $nomComplet\nEntreprise: $entreprise\nEmail: $email\nTéléphone: $telephone\nAdresse: $adresse\nCanton: $canton\nMessage: $message"
     . "\nSilver event-swiss.com: " . ($eventSwissOptIn ? 'demandée' : 'non demandée')
     . "\nCotisation: $montantChf CHF";
@@ -259,11 +263,13 @@ send_mail(MAIL_NOTIFICATION_TO, "OrTra Suisse de l'Événementiel", $notifSubjec
 
 // E-mail de confirmation au demandeur, dans sa langue
 $confirmSubject = t($lang, 'confirm_subject');
-$confirmHtml = '<p>' . e(t($lang, 'confirm_greeting')) . ' ' . e($nomComplet) . ',</p>'
-    . '<p>' . e(t($lang, 'confirm_body1')) . ' <strong>' . e($labelType) . '</strong>.</p>'
-    . '<p>' . e(t($lang, 'confirm_body2')) . '</p>'
-    . '<p>' . e(t($lang, 'confirm_account')) . ' <a href="' . e(rtrim(SITE_URL, '/')) . '/connexion.php">connexion.php</a>.</p>'
-    . '<p>' . t($lang, 'confirm_signature') . '</p>';
+$confirmHtml = render_email_html(
+    '<p style="margin:0 0 14px;">' . e(t($lang, 'confirm_greeting')) . ' ' . e($nomComplet) . ',</p>'
+    . '<p style="margin:0 0 14px;">' . e(t($lang, 'confirm_body1')) . ' <strong>' . e($labelType) . '</strong>.</p>'
+    . '<p style="margin:0 0 14px;">' . e(t($lang, 'confirm_body2')) . '</p>'
+    . '<p style="margin:0 0 4px;">' . e(t($lang, 'confirm_account')) . ' <a href="' . e(rtrim(SITE_URL, '/')) . '/connexion.php" style="color:#0F3D2A;">connexion.php</a>.</p>'
+    . '<p style="margin:20px 0 0;">' . t($lang, 'confirm_signature') . '</p>'
+);
 $confirmAlt = t($lang, 'confirm_greeting') . " $nomComplet,\n\n"
     . t($lang, 'confirm_body1') . " $labelType.\n"
     . t($lang, 'confirm_body2') . "\n"

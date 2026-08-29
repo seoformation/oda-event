@@ -86,6 +86,44 @@ function e(string $value): string
 }
 
 /**
+ * Habille un contenu HTML (deja echappe par l'appelant) dans le gabarit
+ * visuel de la marque OrTra — utilise par tous les e-mails partant du site
+ * (confirmation d'inscription, notification admin, contact) pour qu'ils
+ * soient reconnaissables au premier coup d'oeil. Mise en page par tableaux
+ * et styles inline (obligatoire pour un rendu fiable dans Outlook/Gmail).
+ */
+function render_email_html(string $bodyHtml, ?string $ctaUrl = null, ?string $ctaLabel = null): string
+{
+    $font = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+
+    $cta = '';
+    if ($ctaUrl !== null && $ctaLabel !== null) {
+        $cta = '<tr><td style="padding:4px 40px 8px;" align="center">'
+            . '<a href="' . e($ctaUrl) . '" style="display:inline-block; background:#D9A94E; color:#0F3D2A; text-decoration:none; font-weight:700; font-size:15px; padding:13px 30px; border-radius:6px; font-family:' . $font . ';">' . e($ctaLabel) . '</a>'
+            . '</td></tr>';
+    }
+
+    return '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>OrTra Suisse de l\'Événementiel</title></head>'
+        . '<body style="margin:0; padding:0; background:#F4F3EF;">'
+        . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F3EF; padding:32px 16px; font-family:' . $font . ';">'
+        . '<tr><td align="center">'
+        . '<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%; background:#ffffff; border-radius:10px; overflow:hidden;">'
+        . '<tr><td style="background:#0F3D2A; padding:26px 40px; text-align:center;">'
+        . '<div style="color:#D9A94E; font-size:21px; font-weight:800; letter-spacing:0.02em; font-family:' . $font . ';">OrTra</div>'
+        . '<div style="color:#ffffff; font-size:12px; letter-spacing:0.1em; text-transform:uppercase; margin-top:3px; font-family:' . $font . ';">Suisse de l\'Événementiel</div>'
+        . '</td></tr>'
+        . '<tr><td style="padding:32px 40px 12px; color:#1a1a1a; font-size:15px; line-height:1.65; font-family:' . $font . ';">'
+        . $bodyHtml
+        . '</td></tr>'
+        . $cta
+        . '<tr><td style="padding:24px 40px 0;"><div style="border-top:1px solid #E6E2D8;"></div></td></tr>'
+        . '<tr><td style="padding:16px 40px 28px; color:#8A897F; font-size:12px; line-height:1.6; font-family:' . $font . ';">'
+        . 'Cercle des membres fondateurs · OrTra Suisse de l\'Événementiel · <a href="https://oda-event.ch" style="color:#8A897F;">oda-event.ch</a>'
+        . '</td></tr>'
+        . '</table></td></tr></table></body></html>';
+}
+
+/**
  * Génère un mot de passe temporaire lisible (sans caractères ambigus type
  * 0/O ou 1/l/I) pour la création rapide d'un compte admin depuis
  * admin.php. Affiché une seule fois à l'admin qui promeut la personne,

@@ -40,11 +40,13 @@ if (!empty($errors)) {
 }
 
 $subject = t('fr', 'contact_notif_subject') . ' — ' . $nom . ' [' . strtoupper($lang) . ']';
-$html = '<h2>' . e(t('fr', 'contact_notif_subject')) . '</h2>'
-    . '<p><strong>Langue du formulaire :</strong> ' . e(strtoupper($lang)) . '</p>'
-    . '<p><strong>Nom :</strong> ' . e($nom) . '</p>'
-    . '<p><strong>E-mail :</strong> ' . e($email) . '</p>'
-    . '<p><strong>Message :</strong><br>' . nl2br(e($message)) . '</p>';
+$html = render_email_html(
+    '<h2 style="margin:0 0 18px; font-size:18px; color:#0F3D2A;">' . e(t('fr', 'contact_notif_subject')) . '</h2>'
+    . '<p style="margin:0 0 10px;"><strong>Langue du formulaire :</strong> ' . e(strtoupper($lang)) . '</p>'
+    . '<p style="margin:0 0 10px;"><strong>Nom :</strong> ' . e($nom) . '</p>'
+    . '<p style="margin:0 0 10px;"><strong>E-mail :</strong> ' . e($email) . '</p>'
+    . '<p style="margin:0;"><strong>Message :</strong><br>' . nl2br(e($message)) . '</p>'
+);
 $alt = "Langue: $lang\nNom: $nom\nEmail: $email\n\n$message";
 
 $sent = send_mail(MAIL_NOTIFICATION_TO, "OrTra Suisse de l'Événementiel", $subject, $html, $alt, $email);
