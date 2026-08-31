@@ -15,7 +15,7 @@ require_once __DIR__ . '/db.php';
 
 $admin = require_admin_login();
 $pdo = get_pdo();
-$tab = in_array($_GET['tab'] ?? '', ['evenements', 'messages', 'demandes', 'equipe'], true) ? $_GET['tab'] : 'demandes';
+$tab = in_array($_GET['tab'] ?? '', ['evenements', 'messages', 'demandes', 'equipe', 'articles'], true) ? $_GET['tab'] : 'demandes';
 $notice = '';
 $noticeType = 'success';
 
@@ -91,6 +91,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
         $stmt = $pdo->prepare('UPDATE evenements SET publie = 1 - publie WHERE id = :id');
         $stmt->execute([':id' => $id]);
         $tab = 'evenements';
+    } elseif ($action === 'supprimer_article') {
+        $id = (int) ($_POST['id'] ?? 0);
+        $stmt = $pdo->prepare('DELETE FROM articles WHERE id = :id');
+        $stmt->execute([':id' => $id]);
+        $notice = "Article supprimé.";
+        $tab = 'articles';
+    } elseif ($action === 'basculer_publication_article') {
+        $id = (int) ($_POST['id'] ?? 0);
+        $stmt = $pdo->prepare('SELECT statut, publie_le FROM articles WHERE id = :id');
+        $stmt->execute([':id' => $id]);
+        $row = $stmt->fetch();
+        if ($row) {
+            $nouveauStatut = $row['statut'] === 'publie' ? 'brouillon' : 'publie';
+            $publieLe = $row['publie_le'] ?: ($nouveauStatut === 'publie' ? date('Y-m-d H:i:s') : null);
+            $stmt2 = $pdo->prepare('UPDATE articles SET statut = :statut, publie_le = :publie_le WHERE id = :id');
+            $stmt2->execute([':statut' => $nouveauStatut, ':publie_le' => $publieLe, ':id' => $id]);
+        }
+        $tab = 'articles';
     } elseif ($action === 'promouvoir_admin') {
         $email = trim((string) ($_POST['email'] ?? ''));
         $nom = trim((string) ($_POST['nom'] ?? ''));
@@ -192,6 +210,7 @@ $messages = $pdo->query(
 $demandes = $pdo->query('SELECT id, prenom, nom, email, account_type, profile_type, statut_admission, paiement_statut, payment_token, event_swiss_opt_in, date_inscription FROM membres_inscription ORDER BY date_inscription DESC')->fetchAll();
 $membresPourMessage = $pdo->query('SELECT id, prenom, nom, email FROM membres_inscription ORDER BY nom, prenom')->fetchAll();
 $admins = $pdo->query('SELECT id, email, nom, created_at FROM admins ORDER BY created_at DESC')->fetchAll();
+$articles = $pdo->query('SELECT id, slug, titre_fr, statut, publie_le, created_at FROM articles ORDER BY created_at DESC')->fetchAll();
 
 $statutBadges = [
     'en_attente' => ['badge-pending', 'En attente'],
@@ -201,6 +220,7 @@ $statutBadges = [
 $nbEnAttente = count(array_filter($demandes, fn ($d) => $d['statut_admission'] === 'en_attente'));
 $nbAcceptes = count(array_filter($demandes, fn ($d) => $d['statut_admission'] === 'accepte'));
 $nbEvenementsPublies = count(array_filter($evenements, fn ($ev) => (int) $ev['publie'] === 1));
+$nbArticlesPublies = count(array_filter($articles, fn ($a) => $a['statut'] === 'publie'));
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -243,11 +263,16 @@ $nbEvenementsPublies = count(array_filter($evenements, fn ($ev) => (int) $ev['pu
             <strong><?= count($admins) ?></strong>
             <span>Admin<?= count($admins) > 1 ? 's' : '' ?> OrTra</span>
           </div>
+          <div class="admin-stat">
+            <strong><?= $nbArticlesPublies ?></strong>
+            <span>Article<?= $nbArticlesPublies > 1 ? 's' : '' ?> publié<?= $nbArticlesPublies > 1 ? 's' : '' ?></span>
+          </div>
         </div>
 
         <nav class="admin-tabs">
           <a href="admin.php?tab=demandes" class="<?= $tab === 'demandes' ? 'is-active' : '' ?>">Demandes d'adhésion<?php if ($nbEnAttente > 0): ?> <span class="count"><?= $nbEnAttente ?></span><?php endif; ?></a>
           <a href="admin.php?tab=evenements" class="<?= $tab === 'evenements' ? 'is-active' : '' ?>">Événements</a>
+          <a href="admin.php?tab=articles" class="<?= $tab === 'articles' ? 'is-active' : '' ?>">Articles</a>
           <a href="admin.php?tab=messages" class="<?= $tab === 'messages' ? 'is-active' : '' ?>">Messages</a>
           <a href="admin.php?tab=equipe" class="<?= $tab === 'equipe' ? 'is-active' : '' ?>">Équipe</a>
         </nav>
@@ -353,6 +378,39 @@ $nbEvenementsPublies = count(array_filter($evenements, fn ($ev) => (int) $ev['pu
                 </div>
               </div>
             <?php endforeach; ?>
+          </div>
+          <?php endif; ?>
+
+        <?php elseif ($tab === 'articles'): ?>
+          <div class="admin-topbar" style="margin-bottom:1.25rem;">
+            <p class="admin-hint" style="margin:0;">Articles du blog OrTra, trilingues (FR/DE/IT obligatoire). Un brouillon n'est jamais visible publiquement.</p>
+            <a href="admin-article.php" class="btn btn-primary btn-xs">+ Nouvel article</a>
+          </div>
+          <?php if (empty($articles)): ?>
+            <div class="admin-empty">Aucun article pour le moment.</div>
+          <?php else: ?>
+          <div class="admin-table-wrap">
+          <table class="admin-table" style="min-width:0;">
+            <thead><tr>
+              <th>Titre (FR)</th><th>Statut</th><th>Date</th><th>Actions</th>
+            </tr></thead>
+            <tbody>
+              <?php foreach ($articles as $art): ?>
+                <tr>
+                  <td><?= e((string) $art['titre_fr']) ?></td>
+                  <td><span class="badge <?= $art['statut'] === 'publie' ? 'badge-accepted' : 'badge-neutral' ?>"><?= $art['statut'] === 'publie' ? 'Publié' : 'Brouillon' ?></span></td>
+                  <td><?= e(date('d.m.Y', strtotime((string) ($art['publie_le'] ?: $art['created_at'])))) ?></td>
+                  <td>
+                    <div class="admin-actions">
+                      <a href="admin-article.php?id=<?= (int) $art['id'] ?>" class="btn btn-secondary btn-xs">Modifier</a>
+                      <form method="post"><input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>"><input type="hidden" name="action" value="basculer_publication_article"><input type="hidden" name="id" value="<?= (int) $art['id'] ?>"><button type="submit" class="btn btn-secondary btn-xs"><?= $art['statut'] === 'publie' ? 'Dépublier' : 'Publier' ?></button></form>
+                      <form method="post" onsubmit="return confirm('Supprimer cet article ?');"><input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>"><input type="hidden" name="action" value="supprimer_article"><input type="hidden" name="id" value="<?= (int) $art['id'] ?>"><button type="submit" class="btn-danger-outline btn-xs" style="border-radius:6px;">Supprimer</button></form>
+                    </div>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
           </div>
           <?php endif; ?>
 

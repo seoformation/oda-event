@@ -286,3 +286,174 @@ function render_invoice_html(array $row, string $lang): string
         . '<p style="font-size:0.85rem; color:#666;">' . e(t($lang, 'invoice_paid_to')) . '<br>c/o Clément Rozier, La Petite Camargue 66, 1897 Bouveret</p>'
         . '</div>';
 }
+
+/**
+ * Encode un bloc JSON-LD en echappant < > pour empecher une injection qui
+ * romprait la balise <script> englobante (meme principe que safeJsonLd()
+ * cote event-swiss.com).
+ */
+function safe_json_ld(array $data): string
+{
+    return (string) json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
+}
+
+/**
+ * Chaines de l'entete/pied de page communes, pour les pages dynamiques
+ * (actualites.php, actualite.php) qui n'ont pas de fichier statique par
+ * langue comme le reste du site. Volontairement separe de TRANSLATIONS
+ * (i18n.php, dedie aux messages de formulaire) pour ne rien risquer de
+ * casser la-bas.
+ */
+const CHROME_STRINGS = [
+    'fr' => [
+        'accueil' => 'Accueil', 'devenir_membre' => 'Devenir membre', 'contact' => 'Contact',
+        'rejoindre' => "Rejoindre l'OrTra", 'faq' => 'FAQ', 'utilite' => 'À quoi sert une OrTra ?',
+        'mentions' => 'Mentions légales & protection des données', 'navigation' => 'Navigation',
+        'plateforme_titre' => 'Plateforme partenaire',
+        'plateforme_texte' => "L'annuaire professionnel du secteur est disponible sur",
+        'statuts' => "Statuts de l'association", 'blog' => 'Actualités',
+    ],
+    'de' => [
+        'accueil' => 'Startseite', 'devenir_membre' => 'Mitglied werden', 'contact' => 'Kontakt',
+        'rejoindre' => 'Der OrTra beitreten', 'faq' => 'FAQ', 'utilite' => 'Wozu dient eine OrTra?',
+        'mentions' => 'Impressum & Datenschutz', 'navigation' => 'Navigation',
+        'plateforme_titre' => 'Partnerplattform',
+        'plateforme_texte' => 'Das Branchenverzeichnis ist verfügbar auf',
+        'statuts' => 'Vereinsstatuten', 'blog' => 'Aktuelles',
+    ],
+    'it' => [
+        'accueil' => 'Home', 'devenir_membre' => 'Diventare membro', 'contact' => 'Contatto',
+        'rejoindre' => "Unisciti all'OrTra", 'faq' => 'FAQ', 'utilite' => "A cosa serve un'OrTra?",
+        'mentions' => 'Note legali e protezione dei dati', 'navigation' => 'Navigazione',
+        'plateforme_titre' => 'Piattaforma partner',
+        'plateforme_texte' => 'La directory professionale del settore è disponibile su',
+        'statuts' => "Statuto dell'associazione", 'blog' => 'Novità',
+    ],
+];
+
+function cs(string $lang, string $key): string
+{
+    return CHROME_STRINGS[$lang][$key] ?? CHROME_STRINGS['fr'][$key] ?? $key;
+}
+
+/**
+ * Entete commune des pages dynamiques publiques (actualites.php,
+ * actualite.php). $langSwitchUrls doit fournir les 3 URLs (fr/de/it) de la
+ * page equivalente dans chaque langue.
+ */
+function render_public_header(string $lang, array $langSwitchUrls): string
+{
+    $logoByLang = ['fr' => 'OrTra_Logo_FR.svg', 'de' => 'OrTra_Logo_DE.svg', 'it' => 'OrTra_Logo_IT.svg'];
+    $logo = $logoByLang[$lang] ?? $logoByLang['fr'];
+    $langLinks = '';
+    foreach (['fr' => 'FR', 'de' => 'DE', 'it' => 'IT'] as $code => $label) {
+        $active = $code === $lang ? ' class="is-active"' : '';
+        $langLinks .= '<a href="' . e($langSwitchUrls[$code]) . '"' . $active . ' lang="' . $code . '">' . $label . '</a>';
+        if ($code !== 'it') {
+            $langLinks .= '<span class="sep" aria-hidden="true">·</span>';
+        }
+    }
+
+    return '<header class="site-header"><div class="container">'
+        . '<a href="index' . ($lang === 'fr' ? '' : '.' . $lang) . '.html" class="brand">'
+        . '<img src="assets/img/' . $logo . '?v=4" alt="OrTra Suisse de l\'Événementiel" class="brand-logo">'
+        . '<span class="visually-hidden">— ' . e(cs($lang, 'accueil')) . '</span></a>'
+        . '<button class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="main-nav" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>'
+        . '<nav class="main-nav" id="main-nav" data-main-nav aria-label="Navigation principale">'
+        . '<a href="index' . ($lang === 'fr' ? '' : '.' . $lang) . '.html">' . e(cs($lang, 'accueil')) . '</a>'
+        . '<a href="devenir-membre' . ($lang === 'fr' ? '' : '.' . $lang) . '.html">' . e(cs($lang, 'devenir_membre')) . '</a>'
+        . '<a href="contact' . ($lang === 'fr' ? '' : '.' . $lang) . '.html">' . e(cs($lang, 'contact')) . '</a>'
+        . '<div class="lang-switch" aria-label="Choix de la langue">' . $langLinks . '</div>'
+        . '<a href="devenir-membre' . ($lang === 'fr' ? '' : '.' . $lang) . '.html" class="btn btn-primary">' . e(cs($lang, 'rejoindre')) . '</a>'
+        . '</nav></div></header>';
+}
+
+/**
+ * Pied de page commun des pages dynamiques publiques. Meme parametre
+ * $langSwitchUrls que render_public_header().
+ */
+function render_public_footer(string $lang, array $langSwitchUrls): string
+{
+    $suffix = $lang === 'fr' ? '' : '.' . $lang;
+    $langLinks = '';
+    foreach (['fr' => 'FR', 'de' => 'DE', 'it' => 'IT'] as $code => $label) {
+        $active = $code === $lang ? ' class="is-active"' : '';
+        $langLinks .= '<a href="' . e($langSwitchUrls[$code]) . '"' . $active . ' lang="' . $code . '">' . $label . '</a>';
+        if ($code !== 'it') {
+            $langLinks .= '<span class="sep" aria-hidden="true">·</span>';
+        }
+    }
+
+    return '<footer class="site-footer"><div class="container"><div class="footer-grid">'
+        . '<div class="footer-col"><div class="footer-brand">'
+        . '<img src="assets/img/OrTra_Logo_Combine_3Langues.svg?v=4" alt="" class="footer-logo">'
+        . '<span>OrTra Suisse de l\'Événementiel</span></div>'
+        . '<address>OrTra Événementiel Suisse<br>c/o Clément Rozier<br>La Petite Camargue 66<br>1897 Bouveret · Suisse<br><br>'
+        . 'Tél. <a href="tel:+41797463885">+41 79 746 38 85</a><br>Siège : Port-Valais, Suisse</address></div>'
+        . '<div class="footer-col"><h4>' . e(cs($lang, 'navigation')) . '</h4><ul>'
+        . '<li><a href="index' . $suffix . '.html">' . e(cs($lang, 'accueil')) . '</a></li>'
+        . '<li><a href="devenir-membre' . $suffix . '.html">' . e(cs($lang, 'devenir_membre')) . '</a></li>'
+        . '<li><a href="contact' . $suffix . '.html">' . e(cs($lang, 'contact')) . '</a></li>'
+        . '<li><a href="faq' . $suffix . '.html">' . e(cs($lang, 'faq')) . '</a></li>'
+        . '<li><a href="utilite-ortra' . $suffix . '.html">' . e(cs($lang, 'utilite')) . '</a></li>'
+        . '<li><a href="actualites.php?lang=' . $lang . '">' . e(cs($lang, 'blog')) . '</a></li>'
+        . '<li><a href="mentions-legales' . $suffix . '.html">' . e(cs($lang, 'mentions')) . '</a></li>'
+        . '</ul></div>'
+        . '<div class="footer-col"><h4>' . e(cs($lang, 'plateforme_titre')) . '</h4>'
+        . '<p>' . e(cs($lang, 'plateforme_texte')) . ' <a href="https://event-swiss.com" target="_blank" rel="noopener">event-swiss.com</a>.</p></div>'
+        . '</div><div class="footer-bottom"><span>Cercle des membres fondateurs · 2026</span>'
+        . '<div class="lang-switch" aria-label="Choix de la langue">' . $langLinks . '</div>'
+        . '<a href="mentions-legales' . $suffix . '.html">' . e(cs($lang, 'mentions')) . '</a>'
+        . '<a href="assets/docs/statuts-ortra-evenementiel-suisse.pdf" target="_blank" rel="noopener">' . e(cs($lang, 'statuts')) . '</a>'
+        . '<a href="admin-connexion.php">Admin</a>'
+        . '</div></div></footer>';
+}
+
+/**
+ * Slug URL-safe a partir d'un titre (translitteration des accents, minuscule,
+ * tirets). Utilise a la creation d'un article dans admin-article.php ; les
+ * appelants doivent verifier l'unicite en base (voir slug_est_disponible()).
+ */
+function slugify(string $titre): string
+{
+    $slug = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $titre) ?: $titre;
+    $slug = strtolower($slug);
+    $slug = preg_replace('/[^a-z0-9]+/', '-', $slug) ?? '';
+    return trim($slug, '-');
+}
+
+/**
+ * Verifie qu'un slug est libre (hors d'un article donne, pour le cas d'une
+ * modification qui garde le meme slug).
+ */
+function slug_est_disponible(PDO $pdo, string $slug, ?int $excludeId = null): bool
+{
+    if ($excludeId !== null) {
+        $stmt = $pdo->prepare('SELECT id FROM articles WHERE slug = :slug AND id != :id');
+        $stmt->execute([':slug' => $slug, ':id' => $excludeId]);
+    } else {
+        $stmt = $pdo->prepare('SELECT id FROM articles WHERE slug = :slug');
+        $stmt->execute([':slug' => $slug]);
+    }
+    return $stmt->fetch() === false;
+}
+
+/**
+ * Convertit un contenu d'article en texte brut (un paragraphe par ligne
+ * vide, saisi via un simple <textarea> dans admin-article.php) en HTML
+ * echappe. Pas de parsing Markdown : on privilegie un formulaire admin
+ * simple plutot qu'un editeur riche, coherent avec le reste du site.
+ */
+function render_article_paragraphs(string $texte): string
+{
+    $paragraphes = preg_split('/\R\s*\R/', trim($texte)) ?: [];
+    $html = '';
+    foreach ($paragraphes as $p) {
+        $p = trim($p);
+        if ($p === '') {
+            continue;
+        }
+        $html .= '<p>' . nl2br(e($p)) . '</p>';
+    }
+    return $html;
+}

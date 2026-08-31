@@ -116,3 +116,33 @@ CREATE TABLE IF NOT EXISTS messages_lectures (
 -- de doute sur l'état réel d'une colonne en production, vérifier directement
 -- via `SHOW COLUMNS FROM membres_inscription;` plutôt que de se fier à un
 -- commentaire.
+
+-- Blog / actualités, gérées depuis admin-article.php. Contenu trilingue
+-- obligatoire (FR/DE/IT) : chaque champ éditorial existe en 3 colonnes
+-- plutôt qu'une table de traductions séparée, pour rester simple avec le
+-- volume d'articles attendu (association, pas média). Le contenu long
+-- (contenu_fr/de/it) est du texte brut, un paragraphe par ligne vide —
+-- voir render_article_paragraphs() dans functions.php pour le rendu HTML.
+CREATE TABLE IF NOT EXISTS articles (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  slug VARCHAR(160) NOT NULL UNIQUE,
+  titre_fr VARCHAR(200) NOT NULL,
+  titre_de VARCHAR(200) NOT NULL,
+  titre_it VARCHAR(200) NOT NULL,
+  extrait_fr VARCHAR(300) NOT NULL,
+  extrait_de VARCHAR(300) NOT NULL,
+  extrait_it VARCHAR(300) NOT NULL,
+  contenu_fr TEXT NOT NULL,
+  contenu_de TEXT NOT NULL,
+  contenu_it TEXT NOT NULL,
+  meta_description_fr VARCHAR(160) NULL,
+  meta_description_de VARCHAR(160) NULL,
+  meta_description_it VARCHAR(160) NULL,
+  image_cover VARCHAR(255) NULL,
+  statut ENUM('brouillon', 'publie') NOT NULL DEFAULT 'brouillon',
+  publie_le DATETIME NULL,
+  created_by INT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (created_by) REFERENCES admins(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
