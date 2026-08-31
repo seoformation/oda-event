@@ -104,14 +104,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
                 $notice = "Cette personne a déjà un compte admin.";
                 $noticeType = 'error';
             } else {
-                $genereMotDePasse = generer_mot_de_passe_admin();
-                $stmt = $pdo->prepare('INSERT INTO admins (email, password_hash, nom) VALUES (:email, :password_hash, :nom)');
-                $stmt->execute([
-                    ':email' => $email,
-                    ':password_hash' => password_hash($genereMotDePasse, PASSWORD_DEFAULT),
-                    ':nom' => $nom,
-                ]);
-                $notice = "Compte admin créé pour " . $nom . ". Mot de passe généré : " . $genereMotDePasse . " — communiquez-le en toute sécurité à cette personne, il ne sera plus jamais affiché.";
+                // Reutilise le mot de passe deja choisi par la personne lors de
+                // sa demande d'adhesion (meme hash bcrypt, copie tel quel — le
+                // mot de passe en clair n'est jamais connu ni regenere) plutot
+                // que d'en imposer un nouveau qu'il faudrait communiquer a part.
+                $membreStmt = $pdo->prepare('SELECT password_hash FROM membres_inscription WHERE email = :email');
+                $membreStmt->execute([':email' => $email]);
+                $membrePasswordHash = $membreStmt->fetchColumn();
+
+                if ($membrePasswordHash) {
+                    $stmt = $pdo->prepare('INSERT INTO admins (email, password_hash, nom) VALUES (:email, :password_hash, :nom)');
+                    $stmt->execute([
+                        ':email' => $email,
+                        ':password_hash' => $membrePasswordHash,
+                        ':nom' => $nom,
+                    ]);
+                    $notice = "Compte admin créé pour " . $nom . ". Cette personne peut se connecter à admin-connexion.php avec le même e-mail et le même mot de passe que pour son compte membre.";
+                } else {
+                    $genereMotDePasse = generer_mot_de_passe_admin();
+                    $stmt = $pdo->prepare('INSERT INTO admins (email, password_hash, nom) VALUES (:email, :password_hash, :nom)');
+                    $stmt->execute([
+                        ':email' => $email,
+                        ':password_hash' => password_hash($genereMotDePasse, PASSWORD_DEFAULT),
+                        ':nom' => $nom,
+                    ]);
+                    $notice = "Compte admin créé pour " . $nom . ". Mot de passe généré : " . $genereMotDePasse . " — communiquez-le en toute sécurité à cette personne, il ne sera plus jamais affiché.";
+                }
             }
         }
         $tab = 'demandes';
