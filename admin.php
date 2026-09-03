@@ -53,30 +53,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
         if ($paymentToken === '' || !in_array($decision, ['approve', 'reject'], true)) {
             $notice = "Requête invalide.";
             $noticeType = 'error';
-        } elseif (!defined('EVENT_SWISS_API_URL') || !defined('EVENT_SWISS_API_SECRET') || EVENT_SWISS_API_SECRET === '') {
-            $notice = "Configuration manquante pour contacter event-swiss.com.";
-            $noticeType = 'error';
         } else {
-            $ch = curl_init(rtrim(EVENT_SWISS_API_URL, '/') . '/api/oda/decide-membership');
-            curl_setopt_array($ch, [
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_POST => true,
-                CURLOPT_POSTFIELDS => json_encode(['oda_reference' => $paymentToken, 'decision' => $decision]),
-                CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'Authorization: Bearer ' . EVENT_SWISS_API_SECRET],
-                CURLOPT_TIMEOUT => 20,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_MAXREDIRS => 3,
-            ]);
-            $resp = curl_exec($ch);
-            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $curlErr = curl_error($ch);
-            curl_close($ch);
-            if ($curlErr !== '' || $code < 200 || $code >= 300) {
-                error_log('Erreur decide-membership event-swiss.com : ' . ($curlErr !== '' ? $curlErr : (string) $resp));
-                $notice = "Erreur lors de la communication avec event-swiss.com. Réessayez, ou traitez la demande depuis le panneau admin event-swiss.com.";
+            $result = decider_adhesion_event_swiss($paymentToken, $decision);
+            if (!$result['success']) {
+                $notice = $result['error'];
                 $noticeType = 'error';
             } else {
                 $notice = $decision === 'approve' ? "Demande acceptée." : "Demande refusée.";
+                // Invalide aussi les liens a token unique de l'e-mail de
+                // notification : la decision vient d'etre prise ici, ils
+                // ne doivent plus pouvoir la re-declencher.
+                $stmt = $pdo->prepare('UPDATE membres_inscription SET accept_token = NULL, refuse_token = NULL WHERE payment_token = :token');
+                $stmt->execute([':token' => $paymentToken]);
             }
         }
         $tab = 'demandes';
@@ -230,7 +218,7 @@ $nbArticlesPublies = count(array_filter($articles, fn ($a) => $a['statut'] === '
 <title>Espace admin — OrTra Suisse de l'Événementiel</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="assets/img/favicon.svg?v=2" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/style.css?v=15">
+<link rel="stylesheet" href="assets/css/style.css?v=18">
 </head>
 <body>
 <main>

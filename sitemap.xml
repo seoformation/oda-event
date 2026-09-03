@@ -95,6 +95,37 @@
   </url>
 
   <url>
+    <loc>https://oda-event.ch/tarifs.html</loc>
+    <lastmod>2026-09-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://oda-event.ch/tarifs.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://oda-event.ch/tarifs.de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://oda-event.ch/tarifs.it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://oda-event.ch/tarifs.html"/>
+  </url>
+  <url>
+    <loc>https://oda-event.ch/tarifs.de.html</loc>
+    <lastmod>2026-09-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://oda-event.ch/tarifs.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://oda-event.ch/tarifs.de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://oda-event.ch/tarifs.it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://oda-event.ch/tarifs.html"/>
+  </url>
+  <url>
+    <loc>https://oda-event.ch/tarifs.it.html</loc>
+    <lastmod>2026-09-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://oda-event.ch/tarifs.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://oda-event.ch/tarifs.de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://oda-event.ch/tarifs.it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://oda-event.ch/tarifs.html"/>
+  </url>
+
+  <url>
     <loc>https://oda-event.ch/actualites.php?lang=fr</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>

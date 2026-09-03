@@ -56,7 +56,7 @@ $rl = $relatedLabels[$lang];
 <?php if ($article): ?>
 <meta name="description" content="<?= e($metaDescription) ?>">
 <link rel="icon" href="assets/img/favicon.svg?v=2" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/style.css?v=15">
+<link rel="stylesheet" href="assets/css/style.css?v=18">
 <link rel="canonical" href="<?= e($canonicalUrl) ?>">
 <link rel="alternate" hreflang="fr" href="https://oda-event.ch/actualite.php?slug=<?= e(urlencode($slug)) ?>&amp;lang=fr">
 <link rel="alternate" hreflang="de" href="https://oda-event.ch/actualite.php?slug=<?= e(urlencode($slug)) ?>&amp;lang=de">
@@ -87,7 +87,7 @@ $rl = $relatedLabels[$lang];
 <?php else: ?>
 <meta name="robots" content="noindex">
 <link rel="icon" href="assets/img/favicon.svg?v=2" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/style.css?v=15">
+<link rel="stylesheet" href="assets/css/style.css?v=18">
 <?php endif; ?>
 </head>
 <body>

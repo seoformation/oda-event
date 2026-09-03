@@ -132,6 +132,8 @@ $nomComplet = trim($prenom . ' ' . $nom);
 // une personne physique, CHF 300 pour une personne morale.
 $montantChf = $accountType === 'company' ? 300 : 100;
 $paymentToken = bin2hex(random_bytes(16));
+$acceptToken = bin2hex(random_bytes(16));
+$refuseToken = bin2hex(random_bytes(16));
 $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
 try {
@@ -141,12 +143,12 @@ try {
             (type_membre, nom_complet, entreprise, email, telephone, canton, message, consentement_rgpd,
              event_swiss_opt_in, account_type, profile_type, prenom, nom,
              es_legal_name, es_address, es_company_address, es_company_email, es_company_phone,
-             payment_token, paiement_montant_chf, lang, password_hash)
+             payment_token, paiement_montant_chf, lang, password_hash, accept_token, refuse_token)
          VALUES
             (:type_membre, :nom_complet, :entreprise, :email, :telephone, :canton, :message, :consentement_rgpd,
              :event_swiss_opt_in, :account_type, :profile_type, :prenom, :nom,
              :es_legal_name, :es_address, :es_company_address, :es_company_email, :es_company_phone,
-             :payment_token, :paiement_montant_chf, :lang, :password_hash)'
+             :payment_token, :paiement_montant_chf, :lang, :password_hash, :accept_token, :refuse_token)'
     );
     $stmt->execute([
         ':type_membre' => $typeMembre,
@@ -171,6 +173,8 @@ try {
         ':paiement_montant_chf' => $montantChf,
         ':lang' => $lang,
         ':password_hash' => $passwordHash,
+        ':accept_token' => $acceptToken,
+        ':refuse_token' => $refuseToken,
     ]);
 } catch (PDOException $ex) {
     if ((string) $ex->getCode() === '23000') {
@@ -251,7 +255,12 @@ $notifHtml = render_email_html(
     . '<p style="margin:0 0 10px;"><strong>Canton :</strong> ' . e($canton) . '</p>'
     . ($message !== '' ? '<p style="margin:0 0 10px;"><strong>Message :</strong><br>' . nl2br(e($message)) . '</p>' : '')
     . '<p style="margin:0 0 10px;"><strong>Formule Silver event-swiss.com :</strong> ' . ($eventSwissOptIn ? 'demandée' : 'non demandée') . '</p>'
-    . '<p style="margin:0;"><strong>Cotisation :</strong> ' . $montantChf . ' CHF</p>',
+    . '<p style="margin:0 0 18px;"><strong>Cotisation :</strong> ' . $montantChf . ' CHF</p>'
+    . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
+    . '<td align="center" style="padding-right:6px;"><a href="' . e(rtrim(SITE_URL, '/') . '/decision-adhesion.php?token=' . $acceptToken . '&action=accepter') . '" style="display:inline-block; background:#0F3D2A; color:#ffffff; text-decoration:none; font-weight:700; font-size:14px; padding:12px 20px; border-radius:6px;">Accepter</a></td>'
+    . '<td align="center" style="padding-left:6px;"><a href="' . e(rtrim(SITE_URL, '/') . '/decision-adhesion.php?token=' . $refuseToken . '&action=refuser') . '" style="display:inline-block; background:#ffffff; color:#B3261E; border:1px solid #B3261E; text-decoration:none; font-weight:700; font-size:14px; padding:11px 20px; border-radius:6px;">Refuser</a></td>'
+    . '</tr></table>'
+    . '<p style="margin:12px 0 0; font-size:12px; color:#8A897F;">Chaque lien n\'est valable qu\'une fois.</p>',
     rtrim(SITE_URL, '/') . '/admin.php?tab=demandes',
     'Traiter la demande'
 );
@@ -267,7 +276,10 @@ $confirmHtml = render_email_html(
     '<p style="margin:0 0 14px;">' . e(t($lang, 'confirm_greeting')) . ' ' . e($nomComplet) . ',</p>'
     . '<p style="margin:0 0 14px;">' . e(t($lang, 'confirm_body1')) . ' <strong>' . e($labelType) . '</strong>.</p>'
     . '<p style="margin:0 0 14px;">' . e(t($lang, 'confirm_body2')) . '</p>'
-    . '<p style="margin:0 0 4px;">' . e(t($lang, 'confirm_account')) . ' <a href="' . e(rtrim(SITE_URL, '/')) . '/connexion.php" style="color:#0F3D2A;">connexion.php</a>.</p>'
+    . '<p style="margin:0 0 18px;">' . e(t($lang, 'confirm_account')) . '</p>'
+    . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">'
+    . '<a href="' . e(rtrim(SITE_URL, '/') . '/connexion.php') . '" style="display:inline-block; background:#D9A94E; color:#0F3D2A; text-decoration:none; font-weight:700; font-size:15px; padding:13px 30px; border-radius:6px;">' . e(t($lang, 'confirm_login_cta')) . '</a>'
+    . '</td></tr></table>'
     . '<p style="margin:20px 0 0;">' . t($lang, 'confirm_signature') . '</p>'
 );
 $confirmAlt = t($lang, 'confirm_greeting') . " $nomComplet,\n\n"

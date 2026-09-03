@@ -137,7 +137,7 @@ if (isset($_GET['saved'])) {
 <title><?= $article ? 'Modifier' : 'Nouvel' ?> article — Espace admin OrTra</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="assets/img/favicon.svg?v=2" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/style.css?v=15">
+<link rel="stylesheet" href="assets/css/style.css?v=18">
 </head>
 <body>
 <main>

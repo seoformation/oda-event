@@ -43,7 +43,7 @@ $pageDescriptions = [
 <title><?= e($pageTitles[$lang]) ?></title>
 <meta name="description" content="<?= e($pageDescriptions[$lang]) ?>">
 <link rel="icon" href="assets/img/favicon.svg?v=2" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/style.css?v=15">
+<link rel="stylesheet" href="assets/css/style.css?v=18">
 <link rel="canonical" href="https://oda-event.ch/actualites.php?lang=<?= e($lang) ?>">
 <link rel="alternate" hreflang="fr" href="https://oda-event.ch/actualites.php?lang=fr">
 <link rel="alternate" hreflang="de" href="https://oda-event.ch/actualites.php?lang=de">

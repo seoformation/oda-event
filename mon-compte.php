@@ -21,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
     $nom = trim((string) ($_POST['nom'] ?? ''));
     $telephone = trim((string) ($_POST['telephone'] ?? ''));
     $adresse = trim((string) ($_POST['adresse'] ?? ''));
+    $canton = trim((string) ($_POST['canton'] ?? ''));
     $entreprise = trim((string) ($_POST['entreprise'] ?? ''));
     $legalName = trim((string) ($_POST['legal_name'] ?? ''));
     $companyAddress = trim((string) ($_POST['company_address'] ?? ''));
@@ -28,10 +29,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
     $companyPhone = trim((string) ($_POST['company_phone'] ?? ''));
     $wantsSync = (string) ($_POST['sync_event_swiss'] ?? '') === '1';
 
-    if ($prenom !== '' && $nom !== '') {
+    if ($prenom !== '' && $nom !== '' && in_array($canton, CANTONS_SUISSE, true)) {
         $stmt = $pdo->prepare(
             'UPDATE membres_inscription SET
                 prenom = :prenom, nom = :nom, nom_complet = :nom_complet, telephone = :telephone, es_address = :adresse,
+                canton = :canton,
                 entreprise = :entreprise, es_legal_name = :legal_name, es_company_address = :company_address,
                 es_company_email = :company_email, es_company_phone = :company_phone
              WHERE id = :id'
@@ -42,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
             ':nom_complet' => trim($prenom . ' ' . $nom),
             ':telephone' => $telephone !== '' ? $telephone : null,
             ':adresse' => $adresse,
+            ':canton' => $canton,
             ':entreprise' => $membre['account_type'] === 'company' ? $entreprise : null,
             ':legal_name' => $membre['account_type'] === 'company' ? $legalName : null,
             ':company_address' => $membre['account_type'] === 'company' ? $companyAddress : null,
@@ -62,6 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
                     'last_name' => $nom,
                     'phone' => $telephone !== '' ? $telephone : null,
                     'address' => $adresse,
+                    'canton' => $canton,
                     'company_display_name' => $membre['account_type'] === 'company' ? $entreprise : null,
                     'company_address' => $membre['account_type'] === 'company' ? $companyAddress : null,
                 ]),
@@ -162,6 +166,10 @@ $statutLabels = ['en_attente' => 'status_en_attente', 'accepte' => 'status_accep
           <div class="field">
             <label for="adresse"><?= e(t($lang, 'field_adresse')) ?></label>
             <input type="text" id="adresse" name="adresse" value="<?= e((string) ($membre['es_address'] ?? '')) ?>">
+          </div>
+          <div class="field">
+            <label for="canton"><?= e(t($lang, 'field_canton')) ?></label>
+            <select id="canton" name="canton" required><?= render_canton_options((string) ($membre['canton'] ?? '')) ?></select>
           </div>
           <?php if ($membre['account_type'] === 'company'): ?>
             <div class="form-row-2 form-grid" style="display:grid;">

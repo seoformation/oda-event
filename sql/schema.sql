@@ -46,7 +46,14 @@ CREATE TABLE IF NOT EXISTS membres_inscription (
   -- pour ce membre, pour proposer la synchronisation de profil.
   event_swiss_account_linked TINYINT(1) NOT NULL DEFAULT 0,
   login_tentatives INT NOT NULL DEFAULT 0,
-  login_verrouille_jusqu_a DATETIME NULL
+  login_verrouille_jusqu_a DATETIME NULL,
+  -- Liens "Accepter"/"Refuser" a token unique dans l'e-mail de notification
+  -- admin (decision-adhesion.php) : evite d'avoir a se connecter a
+  -- admin.php pour une decision rapide. Generes a l'inscription, mis a
+  -- NULL (invalides) des qu'une decision est prise, par ce chemin ou par
+  -- admin.php.
+  accept_token VARCHAR(64) NULL,
+  refuse_token VARCHAR(64) NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Comptes de l'équipe OrTra (admin.php) : distincts des comptes membres,

@@ -707,6 +707,10 @@ h3 { font-size: 1.25rem; line-height: 1.3; }
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  /* .faq-item a toujours un fond clair (--cream), meme dans une
+     section--dark : sans cette regle, le titre heritait du texte clair
+     de la section et devenait illisible sur la carte claire. */
+  color: var(--text-on-light);
 }
 .faq-item summary::-webkit-details-marker { display: none; }
 .faq-item summary::after {

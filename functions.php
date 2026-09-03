@@ -262,9 +262,67 @@ function require_admin_login(): array
 }
 
 /**
+ * Transmet la decision (accepter/refuser) d'une demande d'adhesion a
+ * event-swiss.com, source de verite pour cette decision (voir
+ * decideOdaMembership() cote event-swiss.com). Factorise ici car appelee a
+ * la fois par admin.php (bouton apres connexion) et decision-adhesion.php
+ * (lien a token unique depuis l'e-mail de notification, sans connexion).
+ */
+function decider_adhesion_event_swiss(string $odaReference, string $decision): array
+{
+    if (!defined('EVENT_SWISS_API_URL') || !defined('EVENT_SWISS_API_SECRET') || EVENT_SWISS_API_SECRET === '') {
+        return ['success' => false, 'error' => "Configuration manquante pour contacter event-swiss.com."];
+    }
+    $ch = curl_init(rtrim(EVENT_SWISS_API_URL, '/') . '/api/oda/decide-membership');
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => json_encode(['oda_reference' => $odaReference, 'decision' => $decision]),
+        CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'Authorization: Bearer ' . EVENT_SWISS_API_SECRET],
+        CURLOPT_TIMEOUT => 20,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_MAXREDIRS => 3,
+    ]);
+    $resp = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlErr = curl_error($ch);
+    curl_close($ch);
+    if ($curlErr !== '' || $code < 200 || $code >= 300) {
+        error_log('Erreur decide-membership event-swiss.com : ' . ($curlErr !== '' ? $curlErr : (string) $resp));
+        return ['success' => false, 'error' => "Erreur lors de la communication avec event-swiss.com. Réessayez, ou traitez la demande depuis le panneau admin event-swiss.com."];
+    }
+    return ['success' => true, 'error' => null];
+}
+
+/**
  * Rendu HTML de la facture (payée), réutilisé par paiement.php et
  * mon-compte.php pour éviter de dupliquer la mise en forme.
  */
+
+// Memes 26 cantons (noms complets en francais, y compris pour les
+// formulaires DE/IT) que devenir-membre*.html — la valeur soumise est
+// toujours en francais quelle que soit la langue de l'interface, pour
+// rester compatible avec le mapping cote event-swiss.com.
+const CANTONS_SUISSE = [
+    'Argovie', 'Appenzell Rhodes-Intérieures', 'Appenzell Rhodes-Extérieures', 'Berne',
+    'Bâle-Campagne', 'Bâle-Ville', 'Fribourg', 'Genève', 'Glaris', 'Grisons', 'Jura',
+    'Lucerne', 'Neuchâtel', 'Nidwald', 'Obwald', 'St-Gall', 'Schaffhouse', 'Soleure',
+    'Schwyz', 'Thurgovie', 'Tessin', 'Uri', 'Vaud', 'Valais', 'Zoug', 'Zurich',
+];
+
+/**
+ * Options <option> pour un <select> de canton, reutilise par mon-compte.php.
+ */
+function render_canton_options(?string $selected): string
+{
+    $html = '';
+    foreach (CANTONS_SUISSE as $canton) {
+        $isSelected = $selected !== null && $selected === $canton ? ' selected' : '';
+        $html .= '<option value="' . e($canton) . '"' . $isSelected . '>' . e($canton) . '</option>';
+    }
+    return $html;
+}
+
 function render_invoice_html(array $row, string $lang): string
 {
     $factureNumero = (string) ($row['facture_numero'] ?? '');
@@ -311,7 +369,7 @@ const CHROME_STRINGS = [
         'mentions' => 'Mentions légales & protection des données', 'navigation' => 'Navigation',
         'plateforme_titre' => 'Plateforme partenaire',
         'plateforme_texte' => "L'annuaire professionnel du secteur est disponible sur",
-        'statuts' => "Statuts de l'association", 'blog' => 'Actualités',
+        'statuts' => "Statuts de l'association", 'blog' => 'Actualités', 'tarifs' => 'Tarifs',
     ],
     'de' => [
         'accueil' => 'Startseite', 'devenir_membre' => 'Mitglied werden', 'contact' => 'Kontakt',
@@ -319,7 +377,7 @@ const CHROME_STRINGS = [
         'mentions' => 'Impressum & Datenschutz', 'navigation' => 'Navigation',
         'plateforme_titre' => 'Partnerplattform',
         'plateforme_texte' => 'Das Branchenverzeichnis ist verfügbar auf',
-        'statuts' => 'Vereinsstatuten', 'blog' => 'Aktuelles',
+        'statuts' => 'Vereinsstatuten', 'blog' => 'Aktuelles', 'tarifs' => 'Tarife',
     ],
     'it' => [
         'accueil' => 'Home', 'devenir_membre' => 'Diventare membro', 'contact' => 'Contatto',
@@ -327,7 +385,7 @@ const CHROME_STRINGS = [
         'mentions' => 'Note legali e protezione dei dati', 'navigation' => 'Navigazione',
         'plateforme_titre' => 'Piattaforma partner',
         'plateforme_texte' => 'La directory professionale del settore è disponibile su',
-        'statuts' => "Statuto dell'associazione", 'blog' => 'Novità',
+        'statuts' => "Statuto dell'associazione", 'blog' => 'Novità', 'tarifs' => 'Tariffe',
     ],
 ];
 
@@ -360,8 +418,8 @@ function render_public_header(string $lang, array $langSwitchUrls): string
         . '<span class="visually-hidden">— ' . e(cs($lang, 'accueil')) . '</span></a>'
         . '<button class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="main-nav" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>'
         . '<nav class="main-nav" id="main-nav" data-main-nav aria-label="Navigation principale">'
-        . '<a href="index' . ($lang === 'fr' ? '' : '.' . $lang) . '.html">' . e(cs($lang, 'accueil')) . '</a>'
         . '<a href="devenir-membre' . ($lang === 'fr' ? '' : '.' . $lang) . '.html">' . e(cs($lang, 'devenir_membre')) . '</a>'
+        . '<a href="tarifs' . ($lang === 'fr' ? '' : '.' . $lang) . '.html">' . e(cs($lang, 'tarifs')) . '</a>'
         . '<a href="contact' . ($lang === 'fr' ? '' : '.' . $lang) . '.html">' . e(cs($lang, 'contact')) . '</a>'
         . '<div class="lang-switch" aria-label="Choix de la langue">' . $langLinks . '</div>'
         . '<a href="devenir-membre' . ($lang === 'fr' ? '' : '.' . $lang) . '.html" class="btn btn-primary">' . e(cs($lang, 'rejoindre')) . '</a>'
