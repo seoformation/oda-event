@@ -4,7 +4,7 @@
 
 CREATE TABLE IF NOT EXISTS membres_inscription (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  type_membre ENUM('organisateur','prestataire','travailleur') NOT NULL,
+  type_membre ENUM('organisateur','prestataire','travailleur','ecole') NOT NULL,
   nom_complet VARCHAR(150) NOT NULL,
   entreprise VARCHAR(150) NULL,
   email VARCHAR(150) NOT NULL UNIQUE,
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS membres_inscription (
   -- profil) remplace aussi l'ancien "Vous êtes organisateur/prestataire/
   -- travailleur" — toujours renseigné, plus seulement si Silver coché.
   account_type ENUM('private','company') NULL,
-  profile_type ENUM('talent','provider','event') NULL,
+  profile_type ENUM('talent','provider','event','school') NULL,
   prenom VARCHAR(100) NULL,
   nom VARCHAR(100) NULL,
   es_address VARCHAR(255) NULL,
@@ -41,6 +41,12 @@ CREATE TABLE IF NOT EXISTS membres_inscription (
   -- Compte membre oda-event.ch (mon-compte.php / connexion.php)
   password_hash VARCHAR(255) NULL,
   statut_admission ENUM('en_attente','accepte','refuse') NOT NULL DEFAULT 'en_attente',
+  -- Date d'acceptation (statut-webhook.php) : point de départ du délai de
+  -- paiement de 30 jours (art. 9 al. 2 / conditions d'adhésion) utilisé par
+  -- cron-relance-paiement.php pour savoir qui relancer.
+  accepte_at DATETIME NULL,
+  -- Evite de relancer plusieurs fois la même personne (cron-relance-paiement.php).
+  relance_paiement_envoyee_at DATETIME NULL,
   -- Renseigné via statut-webhook.php (appelé par event-swiss.com à
   -- l'acceptation) : indique si un compte event-swiss.com a bien été créé
   -- pour ce membre, pour proposer la synchronisation de profil.

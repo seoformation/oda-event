@@ -93,6 +93,6 @@ $pageDescriptions = [
 
 <?= render_public_footer($lang, $langSwitchUrls) ?>
 
-<script src="assets/js/main.js?v=4"></script>
+<script src="assets/js/main.js?v=5"></script>
 </body>
 </html>

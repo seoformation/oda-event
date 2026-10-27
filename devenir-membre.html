@@ -132,6 +132,10 @@
                     <input type="radio" name="profile_type_choice" value="provider" data-profile-type-choice>
                     <span><strong>Prestataire</strong></span>
                   </label>
+                  <label class="radio-option">
+                    <input type="radio" name="profile_type_choice" value="school" data-profile-type-choice>
+                    <span><strong>École / institution</strong></span>
+                  </label>
                 </div>
                 <span class="field-error"></span>
               </fieldset>
@@ -266,6 +270,14 @@
             </div>
 
             <div class="field">
+              <label class="checkbox-field" for="conditions_adhesion">
+                <input type="checkbox" id="conditions_adhesion" name="conditions_adhesion" value="1" required>
+                <span>J'ai pris connaissance des <a href="conditions-adhesion.html" target="_blank" rel="noopener">conditions d'adhésion</a> et de la cotisation annuelle (CHF 100 pour une personne physique, CHF 300 pour une personne morale), et je m'engage à m'en acquitter. <span aria-hidden="true">*</span></span>
+              </label>
+              <span class="field-error"></span>
+            </div>
+
+            <div class="field" data-event-swiss-opt-in-field>
               <label class="checkbox-field" for="event_swiss_opt_in">
                 <input type="checkbox" id="event_swiss_opt_in" name="event_swiss_opt_in" value="1" data-event-swiss-toggle checked>
                 <span>Je souhaite profiter gratuitement de la formule <strong>Silver</strong> offerte par l'association sur <a href="https://event-swiss.com" target="_blank" rel="noopener">event-swiss.com</a>, la plateforme annuaire du secteur événementiel suisse (compte créé avec <strong data-event-swiss-email-display>—</strong> et le même mot de passe).</span>
@@ -320,6 +332,7 @@
           <li><a href="utilite-ortra.html">À quoi sert une OrTra ?</a></li>
           <li><a href="actualites.php?lang=fr">Actualités</a></li>
           <li><a href="mentions-legales.html">Mentions légales &amp; protection des données</a></li>
+          <li><a href="conditions-adhesion.html">Conditions d'adhésion</a></li>
         </ul>
       </div>
       <div class="footer-col">
@@ -343,6 +356,6 @@
   </div>
 </footer>
 
-<script src="assets/js/main.js?v=4"></script>
+<script src="assets/js/main.js?v=5"></script>
 </body>
 </html>

@@ -95,6 +95,37 @@
   </url>
 
   <url>
+    <loc>https://oda-event.ch/conditions-adhesion.html</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://oda-event.ch/conditions-adhesion.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://oda-event.ch/conditions-adhesion.de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://oda-event.ch/conditions-adhesion.it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://oda-event.ch/conditions-adhesion.html"/>
+  </url>
+  <url>
+    <loc>https://oda-event.ch/conditions-adhesion.de.html</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://oda-event.ch/conditions-adhesion.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://oda-event.ch/conditions-adhesion.de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://oda-event.ch/conditions-adhesion.it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://oda-event.ch/conditions-adhesion.html"/>
+  </url>
+  <url>
+    <loc>https://oda-event.ch/conditions-adhesion.it.html</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://oda-event.ch/conditions-adhesion.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://oda-event.ch/conditions-adhesion.de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://oda-event.ch/conditions-adhesion.it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://oda-event.ch/conditions-adhesion.html"/>
+  </url>
+
+  <url>
     <loc>https://oda-event.ch/tarifs.html</loc>
     <lastmod>2026-09-02</lastmod>
     <changefreq>monthly</changefreq>

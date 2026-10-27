@@ -44,6 +44,7 @@ $adresse = trim((string) ($_POST['adresse'] ?? ''));
 $canton = trim((string) ($_POST['canton'] ?? ''));
 $message = trim((string) ($_POST['message'] ?? ''));
 $consentement = (string) ($_POST['consentement_rgpd'] ?? '') === '1';
+$conditionsAdhesion = (string) ($_POST['conditions_adhesion'] ?? '') === '1';
 
 $legalName = trim((string) ($_POST['legal_name'] ?? ''));
 $entreprise = trim((string) ($_POST['entreprise'] ?? '')); // "Nom à afficher"
@@ -52,6 +53,12 @@ $companyEmail = trim((string) ($_POST['company_email'] ?? ''));
 $companyPhone = trim((string) ($_POST['company_phone'] ?? ''));
 
 $eventSwissOptIn = (string) ($_POST['event_swiss_opt_in'] ?? '') === '1';
+// Exception École : jamais de compte Silver event-swiss.com, quoi que le
+// formulaire envoie — vérifié aussi côté event-swiss.com (app/api/oda/
+// membership/route.ts) en défense en profondeur.
+if ($profileType === 'school') {
+    $eventSwissOptIn = false;
+}
 $password = (string) ($_POST['password'] ?? '');
 $passwordConfirm = (string) ($_POST['password_confirm'] ?? '');
 
@@ -61,7 +68,7 @@ if (!in_array($accountType, $accountTypesValides, true)) {
     $errors['account_type'] = t($lang, 'err_es_account_type');
 }
 $profileTypeCoherent = ($accountType === 'private' && $profileType === 'talent')
-    || ($accountType === 'company' && in_array($profileType, ['provider', 'event'], true));
+    || ($accountType === 'company' && in_array($profileType, ['provider', 'event', 'school'], true));
 if (!$profileTypeCoherent) {
     $errors['profile_type_choice'] = t($lang, 'err_es_profile_type');
 }
@@ -85,6 +92,9 @@ if (!in_array($canton, $cantonsValides, true)) {
 }
 if (!$consentement) {
     $errors['consentement_rgpd'] = t($lang, 'err_consentement');
+}
+if (!$conditionsAdhesion) {
+    $errors['conditions_adhesion'] = t($lang, 'err_conditions_adhesion');
 }
 if ($accountType === 'company') {
     if ($legalName === '' || mb_strlen($legalName) > 150) {
@@ -124,7 +134,7 @@ if (!empty($errors)) {
 
 // Catégorie OrTra dérivée du choix unifié privé/entreprise + profil, pour
 // rester compatible avec les libellés et e-mails existants (inchangés).
-$typeMembreParProfil = ['talent' => 'travailleur', 'event' => 'organisateur', 'provider' => 'prestataire'];
+$typeMembreParProfil = ['talent' => 'travailleur', 'event' => 'organisateur', 'provider' => 'prestataire', 'school' => 'ecole'];
 $typeMembre = $typeMembreParProfil[$profileType] ?? 'travailleur';
 $nomComplet = trim($prenom . ' ' . $nom);
 
@@ -238,6 +248,7 @@ $labelsType = [
     'organisateur' => t($lang, 'type_organisateur'),
     'prestataire' => t($lang, 'type_prestataire'),
     'travailleur' => t($lang, 'type_travailleur'),
+    'ecole' => t($lang, 'type_ecole'),
 ];
 $labelType = $labelsType[$typeMembre] ?? $typeMembre;
 

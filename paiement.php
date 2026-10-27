@@ -118,12 +118,16 @@ $html = '<h1 style="margin-top:0;">' . e(t($lang, 'pay_title')) . '</h1>'
     . '<p style="font-size:1.4rem; font-weight:700;">' . e(t($lang, 'pay_amount_label')) . ' : ' . $montant . ' CHF</p>'
     . '</div>';
 
+if (QRBILL_IBAN !== '') {
+    $html .= '<p><a class="btn btn-primary btn-block" href="facture-qr.php?ref=' . e($token) . '">' . e(t($lang, 'qrbill_button')) . '</a></p>';
+}
+
 if ($stripeConfigured) {
     $html .= '<form method="post" action="paiement.php?ref=' . e($token) . '">'
         . '<input type="hidden" name="ref" value="' . e($token) . '">'
-        . '<button type="submit" class="btn btn-primary btn-block">' . e(t($lang, 'pay_button')) . '</button>'
+        . '<button type="submit" class="btn btn-secondary btn-block">' . e(t($lang, 'pay_button')) . '</button>'
         . '</form>';
-} else {
+} elseif (QRBILL_IBAN === '') {
     $html .= '<p>' . e(t($lang, 'pay_unavailable')) . '</p>';
 }
 

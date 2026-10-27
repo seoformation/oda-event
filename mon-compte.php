@@ -142,7 +142,12 @@ $statutLabels = ['en_attente' => 'status_en_attente', 'accepte' => 'status_accep
         <?php else: ?>
           <p><?= e(t($lang, 'dashboard_invoice_none')) ?></p>
           <?php if ($membre['statut_admission'] === 'accepte' && $membre['payment_token']): ?>
-            <p><a class="btn btn-primary" href="paiement.php?ref=<?= e((string) $membre['payment_token']) ?>"><?= e(t($lang, 'pay_button')) ?></a></p>
+            <p>
+              <a class="btn btn-primary" href="facture-qr.php?ref=<?= e((string) $membre['payment_token']) ?>"><?= e(t($lang, 'qrbill_button')) ?></a>
+              <?php if (STRIPE_SECRET_KEY !== ''): ?>
+                <a class="btn btn-secondary" href="paiement.php?ref=<?= e((string) $membre['payment_token']) ?>"><?= e(t($lang, 'pay_button')) ?></a>
+              <?php endif; ?>
+            </p>
           <?php endif; ?>
         <?php endif; ?>
 

@@ -48,7 +48,13 @@ function is_probable_spam(array $post): bool
  * Les échecs d'envoi sont journalisés mais ne doivent jamais empêcher
  * l'enregistrement de la demande côté base de données.
  */
-function send_mail(string $toAddress, string $toName, string $subject, string $htmlBody, string $altBody, ?string $replyTo = null): bool
+/**
+ * $attachment optionnel : ['content' => string (bytes bruts), 'name' =>
+ * string, 'mime' => string, 'cid' => ?string (si fourni, image intégrée
+ * référencée par "cid:<valeur>" dans $htmlBody plutôt qu'en pièce jointe
+ * classique — utilisé pour le QR-code de la facture).
+ */
+function send_mail(string $toAddress, string $toName, string $subject, string $htmlBody, string $altBody, ?string $replyTo = null, ?array $attachment = null): bool
 {
     $mail = new PHPMailer(true);
     try {
@@ -71,6 +77,14 @@ function send_mail(string $toAddress, string $toName, string $subject, string $h
         $mail->Subject = $subject;
         $mail->Body = $htmlBody;
         $mail->AltBody = $altBody;
+
+        if ($attachment !== null) {
+            if (!empty($attachment['cid'])) {
+                $mail->addStringEmbeddedImage($attachment['content'], $attachment['cid'], $attachment['name'], PHPMailer::ENCODING_BASE64, $attachment['mime']);
+            } else {
+                $mail->addStringAttachment($attachment['content'], $attachment['name'], PHPMailer::ENCODING_BASE64, $attachment['mime']);
+            }
+        }
 
         $mail->send();
         return true;
@@ -346,6 +360,148 @@ function render_invoice_html(array $row, string $lang): string
 }
 
 /**
+ * ---------- Facture QR-suisse (QR-bill) ----------
+ * Génère le contenu texte du QR ("Swiss Payments Code", Swiss Implementation
+ * Guidelines QR-bill v2.3) et son rendu visuel imprimable. Le compte de
+ * l'association est un IBAN standard (pas un QR-IBAN, l'IID ne tombe pas
+ * dans la plage réservée 30000-31999) : la facture utilise donc le type de
+ * référence "NON" (sans référence structurée), l'identification du
+ * paiement se faisant via le message libre (nom + numéro de facture).
+ */
+
+function qrbill_clean_iban(): string
+{
+    return str_replace(' ', '', QRBILL_IBAN);
+}
+
+function build_qrbill_payload(array $row): string
+{
+    $montant = number_format((float) $row['paiement_montant_chf'], 2, '.', '');
+    $isCompany = ($row['account_type'] ?? '') === 'company';
+    $debtorName = $isCompany && !empty($row['entreprise'])
+        ? (string) $row['entreprise']
+        : trim((string) $row['prenom'] . ' ' . (string) $row['nom']);
+    $debtorAddressLine1 = mb_substr(trim((string) ($row['es_address'] ?? '')), 0, 70);
+    $factureNumero = (string) ($row['facture_numero'] ?? '') !== ''
+        ? (string) $row['facture_numero']
+        : 'ORTRA-' . date('Y') . '-' . str_pad((string) $row['id'], 5, '0', STR_PAD_LEFT);
+    $message = mb_substr('Cotisation OrTra ' . date('Y') . ' — ' . $debtorName . ' (réf. ' . $factureNumero . ')', 0, 140);
+
+    $lines = [
+        'SPC',
+        '0200',
+        '1',
+        qrbill_clean_iban(),
+        // Créancier (association) — adresse structurée
+        'S',
+        QRBILL_CREDITOR_NAME,
+        QRBILL_CREDITOR_STREET,
+        QRBILL_CREDITOR_BUILDING_NR,
+        QRBILL_CREDITOR_ZIP,
+        QRBILL_CREDITOR_CITY,
+        QRBILL_CREDITOR_COUNTRY,
+        // Créancier ultime (réservé par la norme, toujours vide)
+        '', '', '', '', '', '', '',
+        // Montant + devise
+        $montant,
+        'CHF',
+        // Débiteur (membre) — adresse combinée (un seul champ "adresse" saisi au formulaire)
+        'K',
+        $debtorName,
+        $debtorAddressLine1,
+        '',
+        '',
+        '',
+        'CH',
+        // Référence (type NON : pas de référence structurée sur ce compte)
+        'NON',
+        '',
+        // Message libre + séparateur de fin
+        $message,
+        'EPD',
+    ];
+
+    return implode("\r\n", $lines);
+}
+
+/**
+ * Rendu PNG du QR (bytes bruts), avec la croix suisse (carré noir + croix
+ * blanche, PAS le drapeau rouge — c'est le design imposé par la norme
+ * QR-bill) superposée au centre. Le niveau de correction d'erreur M (~15%)
+ * est celui prescrit par la norme, précisément pour tolérer ce recouvrement
+ * central.
+ */
+function generate_qrbill_png_bytes(string $payload): string
+{
+    require_once __DIR__ . '/assets/lib/phpqrcode/phpqrcode.php';
+
+    $tmpFile = tempnam(sys_get_temp_dir(), 'qrbill_');
+    QRcode::png($payload, $tmpFile, QR_ECLEVEL_M, 6, 4);
+
+    $im = imagecreatefrompng($tmpFile);
+    @unlink($tmpFile);
+    $size = imagesx($im);
+
+    $crossSize = (int) round($size * 0.15);
+    $crossX = (int) round(($size - $crossSize) / 2);
+    $crossY = $crossX;
+    $black = imagecolorallocate($im, 0, 0, 0);
+    $white = imagecolorallocate($im, 255, 255, 255);
+
+    imagefilledrectangle($im, $crossX, $crossY, $crossX + $crossSize, $crossY + $crossSize, $black);
+    $barThickness = max(2, (int) round($crossSize * 0.22));
+    $barLength = (int) round($crossSize * 0.62);
+    $centerX = $crossX + (int) round($crossSize / 2);
+    $centerY = $crossY + (int) round($crossSize / 2);
+    imagefilledrectangle($im, $centerX - (int) round($barLength / 2), $centerY - (int) round($barThickness / 2), $centerX + (int) round($barLength / 2), $centerY + (int) round($barThickness / 2), $white);
+    imagefilledrectangle($im, $centerX - (int) round($barThickness / 2), $centerY - (int) round($barLength / 2), $centerX + (int) round($barThickness / 2), $centerY + (int) round($barLength / 2), $white);
+
+    ob_start();
+    imagepng($im);
+    $bytes = (string) ob_get_clean();
+    imagedestroy($im);
+
+    return $bytes;
+}
+
+function generate_qrbill_png_data_uri(string $payload): string
+{
+    return 'data:image/png;base64,' . base64_encode(generate_qrbill_png_bytes($payload));
+}
+
+/**
+ * Rendu HTML imprimable de la facture QR-suisse (page dédiée facture-qr.php
+ * et e-mail envoyé à l'acceptation d'une demande). $qrSrc est soit une data
+ * URI (affichage web) soit un "cid:..." (pièce jointe e-mail inline).
+ */
+function render_qrbill_html(array $row, string $lang, string $qrSrc): string
+{
+    $montant = (int) $row['paiement_montant_chf'];
+    $isCompany = ($row['account_type'] ?? '') === 'company';
+    $debtorName = $isCompany && !empty($row['entreprise'])
+        ? (string) $row['entreprise']
+        : trim((string) $row['prenom'] . ' ' . (string) $row['nom']);
+    $debtorAddress = trim((string) ($row['es_address'] ?? ''));
+    $factureNumero = (string) ($row['facture_numero'] ?? '') !== ''
+        ? (string) $row['facture_numero']
+        : 'ORTRA-' . date('Y') . '-' . str_pad((string) $row['id'], 5, '0', STR_PAD_LEFT);
+    $creditorAddress = QRBILL_CREDITOR_STREET . ' ' . QRBILL_CREDITOR_BUILDING_NR . ', ' . QRBILL_CREDITOR_ZIP . ' ' . QRBILL_CREDITOR_CITY;
+
+    return '<div style="border:1px solid #e2e2e2; border-radius:8px; padding:1.5rem;">'
+        . '<h2 style="margin-top:0; font-size:1.1rem;">' . e(t($lang, 'qrbill_title')) . '</h2>'
+        . '<p style="color:#555; font-size:0.92rem;">' . e(t($lang, 'qrbill_intro')) . '</p>'
+        . '<div style="display:flex; gap:1.5rem; flex-wrap:wrap; align-items:flex-start; margin-top:1rem;">'
+        . '<img src="' . e($qrSrc) . '" alt="QR-code de paiement" width="180" height="180" style="border:1px solid #e2e2e2;">'
+        . '<div style="flex:1; min-width:220px; font-size:0.92rem;">'
+        . '<p><strong>' . e(t($lang, 'qrbill_amount')) . ' :</strong> ' . $montant . ' ' . e(t($lang, 'qrbill_currency')) . '</p>'
+        . '<p><strong>' . e(t($lang, 'qrbill_iban')) . ' :</strong> ' . e(QRBILL_IBAN) . '</p>'
+        . '<p><strong>' . e(t($lang, 'qrbill_creditor')) . ' :</strong><br>' . e(QRBILL_CREDITOR_NAME) . '<br>' . e($creditorAddress) . '</p>'
+        . '<p><strong>' . e(t($lang, 'qrbill_debtor')) . ' :</strong><br>' . e($debtorName) . ($debtorAddress !== '' ? '<br>' . e($debtorAddress) : '') . '</p>'
+        . '<p><strong>' . e(t($lang, 'qrbill_message')) . ' :</strong> ' . e('Cotisation OrTra ' . date('Y') . ' — réf. ' . $factureNumero) . '</p>'
+        . '</div></div></div>';
+}
+
+/**
  * Encode un bloc JSON-LD en echappant < > pour empecher une injection qui
  * romprait la balise <script> englobante (meme principe que safeJsonLd()
  * cote event-swiss.com).
@@ -370,6 +526,7 @@ const CHROME_STRINGS = [
         'plateforme_titre' => 'Plateforme partenaire',
         'plateforme_texte' => "L'annuaire professionnel du secteur est disponible sur",
         'statuts' => "Statuts de l'association", 'blog' => 'Actualités', 'tarifs' => 'Tarifs',
+        'conditions_adhesion' => "Conditions d'adhésion",
     ],
     'de' => [
         'accueil' => 'Startseite', 'devenir_membre' => 'Mitglied werden', 'contact' => 'Kontakt',
@@ -378,6 +535,7 @@ const CHROME_STRINGS = [
         'plateforme_titre' => 'Partnerplattform',
         'plateforme_texte' => 'Das Branchenverzeichnis ist verfügbar auf',
         'statuts' => 'Vereinsstatuten', 'blog' => 'Aktuelles', 'tarifs' => 'Tarife',
+        'conditions_adhesion' => 'Beitrittsbedingungen',
     ],
     'it' => [
         'accueil' => 'Home', 'devenir_membre' => 'Diventare membro', 'contact' => 'Contatto',
@@ -386,6 +544,7 @@ const CHROME_STRINGS = [
         'plateforme_titre' => 'Piattaforma partner',
         'plateforme_texte' => 'La directory professionale del settore è disponibile su',
         'statuts' => "Statuto dell'associazione", 'blog' => 'Novità', 'tarifs' => 'Tariffe',
+        'conditions_adhesion' => 'Condizioni di adesione',
     ],
 ];
 
@@ -456,6 +615,7 @@ function render_public_footer(string $lang, array $langSwitchUrls): string
         . '<li><a href="utilite-ortra' . $suffix . '.html">' . e(cs($lang, 'utilite')) . '</a></li>'
         . '<li><a href="actualites.php?lang=' . $lang . '">' . e(cs($lang, 'blog')) . '</a></li>'
         . '<li><a href="mentions-legales' . $suffix . '.html">' . e(cs($lang, 'mentions')) . '</a></li>'
+        . '<li><a href="conditions-adhesion' . $suffix . '.html">' . e(cs($lang, 'conditions_adhesion')) . '</a></li>'
         . '</ul></div>'
         . '<div class="footer-col"><h4>' . e(cs($lang, 'plateforme_titre')) . '</h4>'
         . '<p>' . e(cs($lang, 'plateforme_texte')) . ' <a href="https://event-swiss.com" target="_blank" rel="noopener">event-swiss.com</a>.</p></div>'

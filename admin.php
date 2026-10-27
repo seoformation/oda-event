@@ -68,6 +68,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
             }
         }
         $tab = 'demandes';
+    } elseif ($action === 'marquer_paye') {
+        // Les virements bancaires (facture QR-suisse) n'ont pas de webhook
+        // automatique comme Stripe — un membre de l'équipe doit confirmer
+        // manuellement la réception du paiement ici.
+        $paymentToken = trim((string) ($_POST['payment_token'] ?? ''));
+        if ($paymentToken === '') {
+            $notice = "Requête invalide.";
+            $noticeType = 'error';
+        } else {
+            $memberStmt = $pdo->prepare('SELECT id, paiement_statut FROM membres_inscription WHERE payment_token = :token');
+            $memberStmt->execute([':token' => $paymentToken]);
+            $member = $memberStmt->fetch();
+            if ($member && $member['paiement_statut'] !== 'paye') {
+                $factureNumero = 'ORTRA-' . date('Y') . '-' . str_pad((string) $member['id'], 5, '0', STR_PAD_LEFT);
+                $stmt = $pdo->prepare(
+                    'UPDATE membres_inscription SET paiement_statut = "paye", paiement_confirme_at = NOW(), facture_numero = :facture WHERE payment_token = :token'
+                );
+                $stmt->execute([':facture' => $factureNumero, ':token' => $paymentToken]);
+                $notice = "Paiement marqué comme reçu.";
+            } else {
+                $notice = "Requête invalide.";
+                $noticeType = 'error';
+            }
+        }
+        $tab = 'demandes';
     } elseif ($action === 'supprimer_evenement') {
         $id = (int) ($_POST['id'] ?? 0);
         $stmt = $pdo->prepare('DELETE FROM evenements WHERE id = :id');
@@ -309,6 +334,14 @@ $nbArticlesPublies = count(array_filter($articles, fn ($a) => $a['statut'] === '
                           <input type="hidden" name="payment_token" value="<?= e((string) $d['payment_token']) ?>">
                           <input type="hidden" name="decision" value="reject">
                           <button type="submit" class="btn-danger-outline btn-xs" style="border-radius:6px;">Refuser</button>
+                        </form>
+                      <?php endif; ?>
+                      <?php if ((string) $d['statut_admission'] === 'accepte' && $d['paiement_statut'] !== 'paye' && (string) $d['payment_token'] !== ''): ?>
+                        <form method="post" onsubmit="return confirm('Marquer le paiement de <?= e(addslashes((string) $d['prenom'] . ' ' . (string) $d['nom'])) ?> comme reçu ?');">
+                          <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                          <input type="hidden" name="action" value="marquer_paye">
+                          <input type="hidden" name="payment_token" value="<?= e((string) $d['payment_token']) ?>">
+                          <button type="submit" class="btn btn-secondary btn-xs">Marquer payé</button>
                         </form>
                       <?php endif; ?>
                       <?php if (in_array((string) $d['email'], $adminEmails, true)): ?>

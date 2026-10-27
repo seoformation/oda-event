@@ -132,6 +132,10 @@
                     <input type="radio" name="profile_type_choice" value="provider" data-profile-type-choice>
                     <span><strong>Dienstleister</strong></span>
                   </label>
+                  <label class="radio-option">
+                    <input type="radio" name="profile_type_choice" value="school" data-profile-type-choice>
+                    <span><strong>Schule / Institution</strong></span>
+                  </label>
                 </div>
                 <span class="field-error"></span>
               </fieldset>
@@ -266,6 +270,14 @@
             </div>
 
             <div class="field">
+              <label class="checkbox-field" for="conditions_adhesion">
+                <input type="checkbox" id="conditions_adhesion" name="conditions_adhesion" value="1" required>
+                <span>Ich habe die <a href="conditions-adhesion.de.html" target="_blank" rel="noopener">Beitrittsbedingungen</a> und den jährlichen Mitgliederbeitrag (CHF 100 für natürliche Personen, CHF 300 für juristische Personen) zur Kenntnis genommen und verpflichte mich, ihn zu bezahlen. <span aria-hidden="true">*</span></span>
+              </label>
+              <span class="field-error"></span>
+            </div>
+
+            <div class="field" data-event-swiss-opt-in-field>
               <label class="checkbox-field" for="event_swiss_opt_in">
                 <input type="checkbox" id="event_swiss_opt_in" name="event_swiss_opt_in" value="1" data-event-swiss-toggle checked>
                 <span>Ich möchte die vom Verband kostenlos angebotene <strong>Silver</strong>-Formel auf <a href="https://event-swiss.com" target="_blank" rel="noopener">event-swiss.com</a> nutzen, der Verzeichnis-Plattform der Schweizer Eventbranche (Konto mit <strong data-event-swiss-email-display>—</strong> und demselben Passwort).</span>
@@ -320,6 +332,7 @@
           <li><a href="utilite-ortra.de.html">Wozu dient eine OrTra?</a></li>
           <li><a href="actualites.php?lang=de">Aktuelles</a></li>
           <li><a href="mentions-legales.de.html">Impressum &amp; Datenschutz</a></li>
+          <li><a href="conditions-adhesion.de.html">Beitrittsbedingungen</a></li>
         </ul>
       </div>
       <div class="footer-col">
@@ -343,6 +356,6 @@
   </div>
 </footer>
 
-<script src="assets/js/main.js?v=4"></script>
+<script src="assets/js/main.js?v=5"></script>
 </body>
 </html>

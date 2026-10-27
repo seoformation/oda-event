@@ -42,3 +42,21 @@ define('EVENT_SWISS_API_SECRET', '');
 //   checkout.session.completed
 define('STRIPE_SECRET_KEY', '');
 define('STRIPE_WEBHOOK_SECRET', '');
+
+// ---------- Facture QR-suisse (facture-qr.php, paiement des cotisations) ----------
+// IBAN du compte bancaire de l'association (format avec espaces accepté,
+// nettoyé automatiquement à l'usage). Compte non-QR-IBAN : la facture
+// utilise le type de référence "NON" (message libre pour identifier le
+// paiement, pas de numéro de référence structuré).
+define('QRBILL_IBAN', '');
+define('QRBILL_CREDITOR_NAME', "OrTra Suisse de l'Événementiel");
+define('QRBILL_CREDITOR_STREET', 'La Petite Camargue');
+define('QRBILL_CREDITOR_BUILDING_NR', '66');
+define('QRBILL_CREDITOR_ZIP', '1897');
+define('QRBILL_CREDITOR_CITY', 'Bouveret');
+define('QRBILL_CREDITOR_COUNTRY', 'CH');
+
+// ---------- Tâche planifiée (cron-relance-paiement.php) ----------
+// A configurer comme Cron Job Hostinger (hPanel > Avancé > Cron Jobs),
+// une fois par jour, sur : php cron-relance-paiement.php <CRON_SECRET>
+define('CRON_SECRET', '');

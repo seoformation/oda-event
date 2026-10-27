@@ -35,6 +35,16 @@
 
   var contactEmailField = document.querySelector("[data-contact-email]");
   var eventSwissEmailDisplay = document.querySelector("[data-event-swiss-email-display]");
+  // Exception École : ce profil n'a aucun équivalent dans l'annuaire
+  // event-swiss.com, on ne peut donc jamais lui proposer le compte Silver
+  // (voir aussi inscription.php et les conditions d'adhésion).
+  var eventSwissOptInField = document.querySelector("[data-event-swiss-opt-in-field]");
+  var eventSwissOptInCheckbox = document.querySelector("[data-event-swiss-toggle]");
+  if (eventSwissOptInCheckbox) {
+    eventSwissOptInCheckbox.addEventListener("change", function () {
+      eventSwissOptInCheckbox.dataset.userToggled = "1";
+    });
+  }
 
   if (accountTypeRadios.length) {
     var updateProfileTypeOutput = function () {
@@ -46,6 +56,17 @@
       } else {
         var checkedProfile = document.querySelector("[data-profile-type-choice]:checked");
         profileTypeOutput.value = checkedProfile ? checkedProfile.value : "";
+      }
+
+      if (eventSwissOptInField && eventSwissOptInCheckbox) {
+        var isSchool = profileTypeOutput.value === "school";
+        eventSwissOptInField.style.display = isSchool ? "none" : "";
+        eventSwissOptInCheckbox.disabled = isSchool;
+        if (isSchool) {
+          eventSwissOptInCheckbox.checked = false;
+        } else if (!eventSwissOptInCheckbox.dataset.userToggled) {
+          eventSwissOptInCheckbox.checked = true;
+        }
       }
     };
 
