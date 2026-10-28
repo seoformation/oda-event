@@ -59,7 +59,19 @@ CREATE TABLE IF NOT EXISTS membres_inscription (
   -- NULL (invalides) des qu'une decision est prise, par ce chemin ou par
   -- admin.php.
   accept_token VARCHAR(64) NULL,
-  refuse_token VARCHAR(64) NULL
+  refuse_token VARCHAR(64) NULL,
+  -- Archives et désinscription (migration-2026-10-28-archives-desinscriptions.sql)
+  refuse_at DATETIME NULL,
+  desinscription_demande_le DATE NULL,
+  desinscription_effective_le DATE NULL,
+  desinscription_hors_delai TINYINT(1) NULL,
+  desinscription_enregistree_at DATETIME NULL,
+  annee_supp_annee SMALLINT NULL,
+  annee_supp_statut ENUM('due','paye') NULL,
+  annee_supp_montant_chf INT NULL,
+  annee_supp_paye_at DATETIME NULL,
+  desinscription_email_statut ENUM('a_envoyer','en_cours','envoye','echec') NULL,
+  desinscription_email_at DATETIME NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Comptes de l'équipe OrTra (admin.php) : distincts des comptes membres,
@@ -158,4 +170,16 @@ CREATE TABLE IF NOT EXISTS articles (
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (created_by) REFERENCES admins(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Historique des actions de l'équipe sur les dossiers (admin.php, archives).
+CREATE TABLE IF NOT EXISTS admin_journal (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  admin_id INT NULL,
+  membre_id INT NULL,
+  action VARCHAR(50) NOT NULL,
+  details TEXT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_admin_journal_membre (membre_id),
+  FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -111,3 +111,24 @@ le publier dans un dépôt Git public avec de vraies valeurs.
   `.html` (ex. `index.de.html`) en traduisant les textes, qui sont pour
   l'instant tous en dur dans le HTML de chaque page (aucun système de
   traduction n'a été mis en place dans cette première version).
+
+## Mise à jour 2026-10-28 — Archives et désinscriptions
+
+1. **D'abord**, dans phpMyAdmin (onglet SQL), exécuter
+   `sql/migration-2026-10-28-archives-desinscriptions.sql` (ajouts uniquement,
+   aucune donnée modifiée). Vérifier ensuite avec
+   `SHOW COLUMNS FROM membres_inscription;`.
+2. **Ensuite**, mettre en ligne : `admin.php`, `admin-functions.php`,
+   `decision-adhesion.php`, `statut-webhook.php`, `i18n.php`,
+   `assets/js/admin.js`, `assets/css/style.css`.
+   Ne pas mettre en ligne le dossier `tests/`.
+3. Optionnel, dans `config.php` (valeurs par défaut sinon) :
+   `define('DESINSCRIPTION_PREAVIS_MOIS', 3);`,
+   `define('DESINSCRIPTION_FIN_EXERCICE', '12-31');`,
+   `define('DESINSCRIPTION_ANNEE_SUPP', 'hors_delai');` (ou `'toujours'`).
+   Montant de l'année supplémentaire due : `define('COTISATION_ENTREPRISE_CHF', 300);`
+   et `define('COTISATION_PERSONNE_CHF', 150);`.
+
+Tests (en local, PHP 8.1+ et Node) :
+`php tests/desinscription-test.php` puis
+`php tests/desinscription-test.php --export /tmp/php.json && node tests/desinscription-parite.js /tmp/php.json`.

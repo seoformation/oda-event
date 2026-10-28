@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/admin-functions.php';
 
 $token = trim((string) ($_GET['token'] ?? ''));
 $action = (string) ($_GET['action'] ?? '');
@@ -41,6 +42,8 @@ if ($token !== '' && in_array($action, ['accepter', 'refuser'], true)) {
         $upd->execute([':id' => $membre['id']]);
 
         if ($result['success']) {
+            appliquer_decision_locale($pdo, (int) $membre['id'], $action === 'accepter' ? 'accepte' : 'refuse', migration_archives_appliquee($pdo));
+            journaliser_action($pdo, null, (int) $membre['id'], $action, 'Depuis le lien de l\'e-mail de notification');
             $success = true;
             $message = $action === 'accepter'
                 ? 'Adhésion de ' . $membre['nom_complet'] . ' acceptée.'

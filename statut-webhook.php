@@ -42,12 +42,14 @@ try {
     $pdo = get_pdo();
     $stmt = $pdo->prepare(
         'UPDATE membres_inscription SET statut_admission = :statut, event_swiss_account_linked = :linked,
-            accepte_at = CASE WHEN :statut2 = "accepte" THEN NOW() ELSE accepte_at END
+            accepte_at = CASE WHEN :statut2 = "accepte" THEN NOW() ELSE accepte_at END,
+            refuse_at = CASE WHEN :statut3 = "refuse" THEN COALESCE(refuse_at, NOW()) ELSE refuse_at END
          WHERE payment_token = :ref'
     );
     $stmt->execute([
         ':statut' => $statutMap[$status],
         ':statut2' => $statutMap[$status],
+        ':statut3' => $statutMap[$status],
         ':linked' => $eventSwissLinked ? 1 : 0,
         ':ref' => $odaReference,
     ]);
