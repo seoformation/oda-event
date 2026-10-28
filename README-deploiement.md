@@ -127,7 +127,7 @@ le publier dans un dépôt Git public avec de vraies valeurs.
    `define('DESINSCRIPTION_FIN_EXERCICE', '12-31');`,
    `define('DESINSCRIPTION_ANNEE_SUPP', 'hors_delai');` (ou `'toujours'`).
    Montant de l'année supplémentaire due : `define('COTISATION_ENTREPRISE_CHF', 300);`
-   et `define('COTISATION_PERSONNE_CHF', 150);`.
+   et `define('COTISATION_PERSONNE_CHF', 100);` (art. 3 des conditions d'adhésion).
 
 Tests (en local, PHP 8.1+ et Node) :
 `php tests/desinscription-test.php` puis

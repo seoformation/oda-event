@@ -114,15 +114,17 @@ function calculer_desinscription(DateTimeImmutable $demande, ?array $params = nu
 
 /**
  * Cotisation annuelle appliquée à l'année supplémentaire due en cas de
- * désinscription hors délai : 300 CHF pour une entreprise, 150 CHF pour une
- * personne physique (surchargeables dans config.php). Le montant est figé
- * dans le dossier au moment de l'enregistrement.
+ * désinscription hors délai, selon l'art. 3 des conditions d'adhésion :
+ * CHF 300 pour une personne morale, CHF 100 pour une personne physique
+ * (surchargeables dans config.php si l'assemblée générale révise les
+ * montants). Le montant est figé dans le dossier au moment de
+ * l'enregistrement.
  */
 function cotisation_annuelle_chf(?string $accountType): int
 {
     return $accountType === 'company'
         ? (defined('COTISATION_ENTREPRISE_CHF') ? (int) COTISATION_ENTREPRISE_CHF : 300)
-        : (defined('COTISATION_PERSONNE_CHF') ? (int) COTISATION_PERSONNE_CHF : 150);
+        : (defined('COTISATION_PERSONNE_CHF') ? (int) COTISATION_PERSONNE_CHF : 100);
 }
 
 function format_date_ch(?string $date): string

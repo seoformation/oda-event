@@ -104,16 +104,16 @@ verifier('envoyé : pas de renvoi', email_desinscription_peut_etre_envoye(['desi
 
 // --- Montant de l'année supplémentaire ---
 verifier('entreprise : 300 CHF', cotisation_annuelle_chf('company'), 300);
-verifier('personne physique : 150 CHF', cotisation_annuelle_chf('private'), 150);
-verifier('type inconnu : tarif personne physique', cotisation_annuelle_chf(null), 150);
+verifier('personne physique : 100 CHF', cotisation_annuelle_chf('private'), 100);
+verifier('type inconnu : tarif personne physique', cotisation_annuelle_chf(null), 100);
 
 // --- Contenu de l'e-mail ---
-$membre = ['prenom' => 'Léa <b>', 'nom' => 'X', 'lang' => 'fr', 'desinscription_effective_le' => '2027-12-31', 'annee_supp_annee' => 2027, 'annee_supp_montant_chf' => 150];
+$membre = ['prenom' => 'Léa <b>', 'nom' => 'X', 'lang' => 'fr', 'desinscription_effective_le' => '2027-12-31', 'annee_supp_annee' => 2027, 'annee_supp_montant_chf' => 100];
 $mail = contenu_email_desinscription($membre);
 verifier('objet', $mail['subject'], 'Confirmation de votre demande de désinscription');
 verifier('prénom personnalisé et échappé', str_contains($mail['html'], 'Bonjour Léa &lt;b&gt;,'), true);
 verifier('date d\'effet', str_contains($mail['html'], 'prendra effet le 31.12.2027'), true);
-verifier('année supplémentaire mentionnée', str_contains($mail['text'], "une année supplémentaire (cotisation 2027 : CHF 150) reste due"), true);
+verifier('année supplémentaire mentionnée', str_contains($mail['text'], "une année supplémentaire (cotisation 2027 : CHF 100) reste due"), true);
 $mail = contenu_email_desinscription(['annee_supp_annee' => null] + $membre);
 verifier('sans année due : pas de mention', str_contains($mail['text'], 'reste due'), false);
 $mail = contenu_email_desinscription(['lang' => 'de'] + $membre);
